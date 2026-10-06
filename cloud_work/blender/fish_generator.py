@@ -590,6 +590,7 @@ def generate(name, out_dir, views=("34",), do_fbx=True, do_render=True, face_neg
     scene.unit_settings.scale_length = 1.0
 
     obj, tris = build_fish(name, P)
+    dims = tuple(obj.dimensions)                                  # before any export-time rotation
     fbx_dir = os.path.join(out_dir, "exports")
     png_dir = os.path.join(out_dir, "previews")
     os.makedirs(fbx_dir, exist_ok=True)
@@ -612,10 +613,9 @@ def generate(name, out_dir, views=("34",), do_fbx=True, do_render=True, face_neg
         export_fbx(scene, obj, fbx, face_negz=face_negz)
         written["fbx"] = fbx
 
-    dims = obj.dimensions
     info = {
         "preset": name, "length_m": P["length_m"], "triangles": tris,
-        "dimensions_m": [round(dims.x, 4), round(dims.y, 4), round(dims.z, 4)],
+        "dimensions_m": [round(dims[0], 4), round(dims[1], 4), round(dims[2], 4)],
         "segments": P["segments"], "sides": P["sides"],
         "forward_axis": "FBX -Z (Roblox LookVector)" if face_negz else "FBX +X (Roblox RightVector)",
         "fbx": written["fbx"], "previews": written["png"],

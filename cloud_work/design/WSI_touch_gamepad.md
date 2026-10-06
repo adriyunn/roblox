@@ -3,6 +3,9 @@ every line number, key name and existing-code claim below comes from the team's 
 
 # WS-I: touch and gamepad controls for the whole F1 loop
 
+Status: DRAFT, FOR RULING (section 9). Net and state impact: none on the wire, no new state or action; the only
+device-related value anywhere is an optional analytics attribute on the LocalPlayer (section 7).
+
 **Decision.** One device layer, `Fishing/Client/InputMap.lua`, sits between raw input and the functions InputController
 already calls for the mouse. It turns a thumbstick, a drag, a trigger or a gyro sample into the same calls the mouse
 and W/A/S/D make today, in the same units. CastGesture, StateRules, FishingNet, RequestGuard, FishJudge and the

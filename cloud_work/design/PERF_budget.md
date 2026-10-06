@@ -3,6 +3,8 @@ every line number, key name and existing-code claim below comes from the team's 
 
 # PERF: a frame-time budget for the fish view and the pool
 
+Status: DRAFT, FOR RULING (section 9). Net and state impact: none (no new cue, state, guard rule or wire byte).
+
 **Decision.** Three budgets, measured the same way every time: server fish step **<= 1.0 ms** per step for 8 fish at
 60 Hz; client `FishPoolView` **<= 0.5 ms** per frame for 8 fish; `HookLineView` line draw **<= 0.3 ms** per frame. Medians
 over a 60 s window must be under budget and p95 under twice the budget, at 4 anglers and 16 fish. A `PerfProbe` module

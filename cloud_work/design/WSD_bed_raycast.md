@@ -3,6 +3,9 @@ every line number, key name and existing-code claim below comes from the team's 
 
 # WS-D: a real bed under the fish (raycast beside `FishZones.depthAt`)
 
+Status: DRAFT, FOR RULING (section 9). Net and state impact: none (ruling 3 keeps `bedY` off the wire; the client
+samples its own rays).
+
 **Decision.** Each fish gets a bed height from a raycast straight down, cached and refreshed every `BedSampleS = 0.5 s`
 or after moving more than `BedSampleMoveM = 0.5 m`, with `FishZones.depthAt` kept as the fallback when the ray misses.
 The ray is the primary source for FishBrain's `fish.bedY` (the X01 sight rays and the mouth floor) and for the home

@@ -3,6 +3,8 @@ every line number, key name and existing-code claim below comes from the team's 
 
 # X01: BedSightLift, the bite fix for a hook resting on the bed (implementation draft for Dev1)
 
+Status: DRAFT, FOR RULING (section 10). Net and state impact: none (no new cue, state, guard rule or wire byte).
+
 **Decision.** One new knob, `BedSightLiftM = 0.03`, and one helper, `sightY(fish, hook)`. Every sight ray that today
 aims at the hook's centre aims at `sightY` instead: the hook's top when the hook lies on the bed, its centre
 everywhere else. Nothing else in FishBrain moves. Mid-water behaviour is byte-identical to the frozen module;
@@ -144,7 +146,7 @@ Dev1 confirms the name). Rows in the suite's style, 50 seeds each where a median
 
 | Row | Setup | Expect |
 |---|---|---|
-| X01-1 | fixed hook on a flat bed, centre at bed + 0.03, g = 0.045 | every seed swallows; median first Swallow in 5..45 s |
+| X01-1 | fixed hook on a flat bed, centre at bed + 0.03, g = 0.045 | every seed swallows; median first Swallow in 5..45 s (the same band EncounterLog's `bed.hoverS` uses in `cloud_work/src/Fishing/Shared/EncounterLog.lua`) |
 | X01-2 | lure hook (LureSim-driven, resting then twitched by a reel pulse) on the same bed | same as X01-1 |
 | X01-3 | hook mid-water (hy - bedY = 0.5 m), the frozen scenario | trace byte-identical to the frozen module's golden trace (`sim/` golden file; the two new oracle columns excluded from the byte compare or regenerated once with Dev1's sign-off) |
 | X01-4 | X01-1 with `BedSightLiftM = 0.02` (mutant) | the bed rows FAIL (negative control: the lowest sample still grazes). If 0.02 passes, the rows are not sensitive enough: lower g to 0.04 until the mutant fails, and record the g that separates them |

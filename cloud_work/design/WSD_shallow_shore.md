@@ -3,6 +3,8 @@ every line number, key name and existing-code claim below comes from the team's 
 
 # WS-D: fish near shallow shores (POOL-1)
 
+Status: DRAFT, FOR RULING (section 9). Net and state impact: none (no new cue, state, guard rule or wire byte).
+
 **Decision.** A home is valid when the water there is deep enough for a fish to be a fish: `depth(home) >= HomeMinDepthM`
 (0.35 m), plus a small horizontal shore clearance `HomeShoreClearM` (0.3 m) so a turning fish never pokes its nose onto
 the beach. The 0.74 m horizontal bubble (`HomeBubbleM`) was a proxy for depth; we measure depth instead. Retry timing

@@ -3,6 +3,9 @@ every line number, key name and existing-code claim below comes from the team's 
 
 # WS-H: options panel additions (camera sensitivity, invert Y, field of view, hold-to-toggle reel)
 
+Status: DRAFT, FOR RULING (section 8). Net and state impact: none now; one `SetOption(key, value)` message later,
+with SaveData (section 5), through Dev3's wire gate.
+
 **Decision.** Four new rows under the existing fishing-sensitivity row, each a number or a bool in a new
 `C.Options` config block with its default and range, each read in exactly one place (CameraAF `addLook` for
 sensitivity and invert, CameraController for FOV, InputController for hold-to-toggle). Values live as attributes on
@@ -75,11 +78,14 @@ Presenting, Retrieving, Inspected and Hooked.
 - Now: the attributes in section 2 on the LocalPlayer. They survive the session, respawns and state changes; they do
   not survive leaving the game. Client-set attributes do not replicate to the server, and nothing on the server needs
   them.
-- Later: `cloud_work/src/Fishing/Server/SaveData.lua` (a cloud draft written in parallel; check it is in the
-  checkout) owns a per-player save with an `options` sub-table. The client sends the changed key through one
-  `SetOption(key, value)` message (new FishingNet name, Dev3's wire gate), the server clamps against `C.Options` again
-  and stores; on join the server sends the saved table and the client writes the attributes. Nothing in the panel
-  changes for that step; only `Options.set` gains a send.
+- Later: `cloud_work/src/Fishing/Server/SaveData.lua` (a cloud draft; in the checkout) gives every player a profile
+  with dot-path access: `profile:set("options.MouseSensitivity", 1.2)`, `profile:get("options")`; the autosave (60 s)
+  or the leave writes it. The `options` table joins `opts.defaults()` with the `C.Options` defaults, which bumps
+  `opts.schemaVersion` and adds one `opts.migrations[<old>]` that inserts the table into older saves. The client sends a
+  changed key through one `SetOption(key, value)` message (new FishingNet name, Dev3's wire gate); the server clamps
+  against `C.Options` again before `profile:set`; on join the server sends `profile:get("options")` and the client
+  writes the attributes. Nothing in the panel changes for that step; only `Options.set` gains a send. Values stay
+  JSON-safe (numbers and booleans are).
 
 ## 6. The panel rows (in the existing panel's style)
 
@@ -91,7 +97,7 @@ Below the fishing-sensitivity row, same width, same label column, same readout f
 | Camera sensitivity (touch) | slider | `1.00x` | `UserInputService.TouchEnabled` |
 | Camera sensitivity (gamepad) | slider | `1.00x` | `UserInputService.GamepadEnabled` |
 | Invert look (up/down) | toggle | `Off` / `On` | always |
-| Field of view | slider 60..90 step 1 | `70°` | always (ruling 1 may hide it in F1) |
+| Field of view | slider 60..90 step 1 | `70 deg` | always (ruling 1 may hide it in F1) |
 | Reel: hold or tap to toggle | toggle | `Hold` / `Toggle` | always |
 | Reset to defaults | button | | always |
 

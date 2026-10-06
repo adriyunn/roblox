@@ -1,21 +1,19 @@
 --!strict
 -- TackleBox (About Fishing F1, WS-T tackle box; Cloud, 2026-10-06; design/WST_tacklebox.md not yet written)
 -- The Tetris-style tackle box from the reference: a W x H grid of 1-based cells holding polyomino items
--- (fish, lures, gear). Pure rules and data: place / move / remove, first-fit auto placement, the
--- "would it fit if I dropped these" question, a JSON-safe save form that re-validates on load, and an
--- invariant check for tests.
+-- (fish, lures, gear). Place / move / remove, first-fit auto placement, the "would it fit if I dropped
+-- these" question, a JSON-safe save form that re-validates on load, and an invariant check for tests.
 --
 -- WRITTEN WITHOUT THE PROJECT FILES. Integration points a dev must wire:
---   * FishingServer (on a catch): `TackleBox.autoPlace(box, { kind = "fish", key = speciesId,
---     shape = TackleBox.SHAPES[shapeName], data = catchRecord })` where shapeName comes from
---     SpeciesTable.sizeClass(id, lengthM). nil + "no room" means the player must make room; use
---     canFitAfterRemoving(box, shape, ids) to drive that prompt.
---   * SaveData (whatever owns the player's DataStore record): store TackleBox.serialize(box) and
---     rebuild with TackleBox.deserialize(tbl) inside pcall; a tampered save errors naming the item id.
+--   * FishingServer (on a catch): TackleBox.autoPlace(box, { kind = "fish", key = speciesId,
+--     shape = TackleBox.SHAPES[shapeName], data = catchRecord }), shapeName from SpeciesTable.sizeClass.
+--     nil + "no room" means the player must make room: canFitAfterRemoving(box, shape, ids) drives that.
+--   * SaveData (the player's DataStore record): store TackleBox.serialize(box); rebuild with
+--     TackleBox.deserialize(tbl) inside pcall, since a tampered save errors naming the item id.
 --   * The client box UI sends (id, rot, x, y) move requests over FishingNet; the server answers with
---     TackleBox.move(box, id, rot, x, y) and replicates TackleBox.items(box).
+--     TackleBox.move and replicates TackleBox.items(box).
 -- Client-facing operations (place, move, remove, autoPlace) never error on a bad request: they return
--- nil/false plus a reason string. Programmer errors (a malformed shape or item, a bad save) do error.
+-- nil/false plus a reason. Programmer errors (a malformed shape or item, a bad save) do error.
 -- No Roblox globals; nothing here needs the engine.
 
 local TackleBox = {}
@@ -24,13 +22,8 @@ export type Cell = { number } -- {dx, dy}
 export type Shape = { Cell } -- polyomino cell offsets; the origin cell {0, 0} is included
 export type Item = { kind: string, key: string, shape: Shape, data: { [string]: any }? }
 export type Placed = { id: number, item: Item, rot: number, x: number, y: number }
-export type Box = {
-	w: number,
-	h: number,
-	nextId: number,
-	placed: { [number]: Placed },
-	grid: { [number]: number }, -- cell key (y-1)*w + x -> item id
-}
+-- grid maps cell key (y-1)*w + x -> item id
+export type Box = { w: number, h: number, nextId: number, placed: { [number]: Placed }, grid: { [number]: number } }
 
 TackleBox.DEFAULT_W = 8
 TackleBox.DEFAULT_H = 6
@@ -64,25 +57,14 @@ local function shapeProblem(shape: any): string?
 		return "bad shape"
 	end
 	local seen: { [string]: boolean } = {}
-	local hasOrigin = false
 	for i = 1, #shape do
 		local c = shape[i]
-		if typeof(c) ~= "table" or not isInt(c[1]) or not isInt(c[2]) then
+		if typeof(c) ~= "table" or not isInt(c[1]) or not isInt(c[2]) or seen[tostring(c[1]) .. "," .. tostring(c[2])] then
 			return "bad shape"
 		end
-		local k = tostring(c[1]) .. "," .. tostring(c[2])
-		if seen[k] then
-			return "bad shape"
-		end
-		seen[k] = true
-		if c[1] == 0 and c[2] == 0 then
-			hasOrigin = true
-		end
+		seen[tostring(c[1]) .. "," .. tostring(c[2])] = true
 	end
-	if not hasOrigin then
-		return "bad shape"
-	end
-	return nil
+	return if seen["0,0"] then nil else "bad shape"
 end
 
 local function validRot(rot: any): boolean
@@ -126,10 +108,7 @@ function TackleBox.shapeCells(shape: Shape, rot: number): { Cell }
 		c[2] -= minY
 	end
 	table.sort(out, function(a: Cell, b: Cell): boolean
-		if a[2] == b[2] then
-			return a[1] < b[1]
-		end
-		return a[2] < b[2]
+		return if a[2] == b[2] then a[1] < b[1] else a[2] < b[2]
 	end)
 	return out
 end
@@ -207,15 +186,12 @@ end
 
 -- Places an item; returns its id, or nil plus a reason. Errors on a malformed item.
 function TackleBox.place(box: Box, item: Item, rot: number, x: number, y: number): (number?, string?)
-	if typeof(item) ~= "table" or not KINDS[item.kind] or typeof(item.key) ~= "string" then
-		error("TackleBox.place: bad item (kind must be fish|lure|gear, key a string)")
+	if typeof(item) ~= "table" or not KINDS[item.kind] or typeof(item.key) ~= "string" or (item.data ~= nil and typeof(item.data) ~= "table") then
+		error("TackleBox.place: bad item (kind must be fish|lure|gear, key a string, data a table or nil)")
 	end
 	local problem = shapeProblem(item.shape)
 	if problem then
 		error("TackleBox.place: " .. problem .. " for item " .. item.key)
-	end
-	if item.data ~= nil and typeof(item.data) ~= "table" then
-		error("TackleBox.place: item.data must be a table or nil")
 	end
 	local ok, why = TackleBox.canPlace(box, item.shape, rot, x, y)
 	if not ok then
@@ -294,9 +270,7 @@ function TackleBox.items(box: Box): { Placed }
 	for _, p in box.placed do
 		table.insert(out, { id = p.id, item = p.item, rot = p.rot, x = p.x, y = p.y })
 	end
-	table.sort(out, function(a: Placed, b: Placed): boolean
-		return a.id < b.id
-	end)
+	table.sort(out, function(a: Placed, b: Placed): boolean return a.id < b.id end)
 	return out
 end
 
@@ -328,16 +302,7 @@ function TackleBox.canFitAfterRemoving(box: Box, shape: Shape, idsToRemove: { nu
 end
 
 -- ---------------------------------------------------------------- save form
-export type SerializedItem = {
-	id: number,
-	kind: string,
-	key: string,
-	shape: Shape,
-	rot: number,
-	x: number,
-	y: number,
-	data: { [string]: any }?,
-}
+export type SerializedItem = { id: number, kind: string, key: string, shape: Shape, rot: number, x: number, y: number, data: { [string]: any }? }
 export type Serialized = { w: number, h: number, nextId: number, items: { SerializedItem } }
 
 -- A plain JSON-safe table of the whole box (items ordered by id).
@@ -370,28 +335,18 @@ function TackleBox.deserialize(tbl: any): Box
 		-- the record is untrusted save data: read it through `any` and check every field
 		local s: any = typeof(list[i]) == "table" and list[i] or {}
 		local label = "TackleBox.deserialize: item " .. tostring(s.id ~= nil and s.id or i)
-		if not isInt(s.id) or s.id < 1 then
-			error(label .. ": bad id")
+		local problem: string? = if not isInt(s.id) or s.id < 1 then "bad id"
+			elseif box.placed[s.id] then "duplicate id"
+			elseif not KINDS[s.kind] or typeof(s.key) ~= "string" then "bad kind or key"
+			elseif not validRot(s.rot) then "bad rotation"
+			elseif s.data ~= nil and typeof(s.data) ~= "table" then "bad data"
+			else shapeProblem(s.shape)
+		if problem == nil then
+			local _, why = fits(box, TackleBox.shapeCells(s.shape, s.rot), s.x, s.y, nil)
+			problem = why
 		end
-		if box.placed[s.id] then
-			error(label .. ": duplicate id")
-		end
-		if not KINDS[s.kind] or typeof(s.key) ~= "string" then
-			error(label .. ": bad kind or key")
-		end
-		local problem = shapeProblem(s.shape)
 		if problem then
 			error(label .. ": " .. problem)
-		end
-		if not validRot(s.rot) then
-			error(label .. ": bad rotation")
-		end
-		if s.data ~= nil and typeof(s.data) ~= "table" then
-			error(label .. ": bad data")
-		end
-		local ok, why = fits(box, TackleBox.shapeCells(s.shape, s.rot), s.x, s.y, nil)
-		if not ok then
-			error(label .. ": " .. tostring(why))
 		end
 		local p: Placed = {
 			id = s.id,
@@ -413,11 +368,8 @@ end
 function TackleBox.check(box: Box): boolean
 	local fresh: { [number]: number } = {}
 	for id, p in box.placed do
-		if p.id ~= id then
-			error(string.format("TackleBox.check: item %d stored under id %d", p.id, id))
-		end
-		if id >= box.nextId then
-			error(string.format("TackleBox.check: item %d is not below nextId %d", id, box.nextId))
+		if p.id ~= id or id >= box.nextId then
+			error(string.format("TackleBox.check: item %d has a bad id (key %d, nextId %d)", p.id, id, box.nextId))
 		end
 		for _, c in TackleBox.shapeCells(p.item.shape, p.rot) do
 			local cx, cy = p.x + c[1], p.y + c[2]

@@ -193,10 +193,12 @@ function GameData.validate(data: Data?): boolean
 			if not isNum(e.tier) or e.tier < 1 or e.tier ~= math.floor(e.tier) then
 				fail(where .. ".tier", "must be a positive integer")
 			end
-			if byTier[e.tier] then
-				fail("GEAR." .. kind, string.format("tier %d used twice (%s, %s)", e.tier, tostring(byTier[e.tier]), tostring(id)))
+			local tier: number = e.tier
+			local prev = byTier[tier]
+			if prev then
+				fail("GEAR." .. kind, string.format("tier %d used twice (%s, %s)", tier, prev, id))
 			end
-			byTier[e.tier] = id
+			byTier[tier] = id
 			for _, f in fields do
 				if not isNum(e[f]) or e[f] <= 0 then
 					fail(where .. "." .. f, "must be > 0")

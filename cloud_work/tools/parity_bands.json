@@ -1,0 +1,5 @@
+{
+  "bed": { "hoverS": [5, 45], "noticeToFirstNip": [3.5, 4.5], "fightS": [5, 60] },
+  "mid": { "hoverS": [2, 20], "noticeToFirstNip": [3.5, 4.5], "fightS": [5, 60] },
+  "lure": { "noticeToFirstNip": [3.5, 4.5], "fightS": [5, 60] }
+}

@@ -1,0 +1,87 @@
+[
+  {
+    "preset": "trout",
+    "length_m": 0.4,
+    "triangles": 652,
+    "dimensions_m": [
+      0.4,
+      0.1227,
+      0.1388
+    ],
+    "segments": 18,
+    "sides": 14,
+    "forward_axis": "FBX +X (Roblox RightVector)",
+    "fbx": "/home/user/roblox/cloud_work/blender/exports/fish_trout.fbx",
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews/fish_trout.png"
+    ]
+  },
+  {
+    "preset": "perch",
+    "length_m": 0.25,
+    "triangles": 532,
+    "dimensions_m": [
+      0.25,
+      0.0824,
+      0.1409
+    ],
+    "segments": 16,
+    "sides": 12,
+    "forward_axis": "FBX +X (Roblox RightVector)",
+    "fbx": "/home/user/roblox/cloud_work/blender/exports/fish_perch.fbx",
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews/fish_perch.png"
+    ]
+  },
+  {
+    "preset": "pike",
+    "length_m": 0.7,
+    "triangles": 628,
+    "dimensions_m": [
+      0.7,
+      0.1517,
+      0.1647
+    ],
+    "segments": 20,
+    "sides": 12,
+    "forward_axis": "FBX +X (Roblox RightVector)",
+    "fbx": "/home/user/roblox/cloud_work/blender/exports/fish_pike.fbx",
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews/fish_pike.png"
+    ]
+  },
+  {
+    "preset": "carp",
+    "length_m": 0.5,
+    "triangles": 652,
+    "dimensions_m": [
+      0.5,
+      0.1811,
+      0.2288
+    ],
+    "segments": 18,
+    "sides": 14,
+    "forward_axis": "FBX +X (Roblox RightVector)",
+    "fbx": "/home/user/roblox/cloud_work/blender/exports/fish_carp.fbx",
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews/fish_carp.png"
+    ]
+  },
+  {
+    "preset": "minnow",
+    "length_m": 0.08,
+    "triangles": 428,
+    "dimensions_m": [
+      0.08,
+      0.0219,
+      0.0225
+    ],
+    "segments": 14,
+    "sides": 10,
+    "forward_axis": "FBX +X (Roblox RightVector)",
+    "fbx": "/home/user/roblox/cloud_work/blender/exports/fish_minnow.fbx",
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews/fish_minnow.png"
+    ]
+  }
+]

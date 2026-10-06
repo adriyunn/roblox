@@ -365,9 +365,12 @@ function TackleBox.deserialize(tbl: any): Box
 	end
 	local box = TackleBox.new(tbl.w, tbl.h)
 	local maxId = 0
-	for i, s in ipairs(tbl.items) do
-		local label = "TackleBox.deserialize: item " .. tostring(typeof(s) == "table" and s.id or i)
-		if typeof(s) ~= "table" or not isInt(s.id) or s.id < 1 then
+	local list: { any } = tbl.items
+	for i = 1, #list do
+		-- the record is untrusted save data: read it through `any` and check every field
+		local s: any = typeof(list[i]) == "table" and list[i] or {}
+		local label = "TackleBox.deserialize: item " .. tostring(s.id ~= nil and s.id or i)
+		if not isInt(s.id) or s.id < 1 then
 			error(label .. ": bad id")
 		end
 		if box.placed[s.id] then

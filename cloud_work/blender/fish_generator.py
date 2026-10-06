@@ -61,7 +61,10 @@ from mathutils import Vector, Matrix
 # belly_colour         belly colour
 # fin_colour           fin colour (None = darkened base colour)
 # spot_colour          dark spot colour (None = dark brown)
-# band_width           0..1, width of the lateral band (0 = no band)                 0.0 .. 0.5
+# band_width           0..1, width of the lateral band (0 = no band); a face row is  0.0 .. 0.5
+#                      in the band when its centre angle is within band_width*45deg of the
+#                      lateral line, so with 14 sides 0.30 gives one row, with 12 sides you need
+#                      >= 0.34 (two rows)
 # bar_every            0 = none, n = vertical bars every n rings (perch)              0 .. 3
 # spot_density         0..1, fraction of back faces painted as spots                 0.0 .. 0.25
 # spot_light           True = spots use band_colour (pike), False = spot_colour       -
@@ -126,7 +129,7 @@ PRESETS = {
         back_arch=0.0, tail_fork_depth=0.32, dorsal_fin_height=0.09, dorsal_pos=0.48, dorsal_len=0.12,
         anal_fin_height=0.05, pectoral_fin_length=0.12, segments=14, sides=10,
         base_colour=(0.40, 0.46, 0.42), band_colour=(0.18, 0.20, 0.24), belly_colour=(0.90, 0.90, 0.88),
-        band_width=0.35, spot_density=0.0, eye_size_ratio=0.04, seed=2,
+        band_width=0.35, spot_density=0.0, eye_size_ratio=0.03, seed=2,
     ),
 }
 
@@ -514,11 +517,13 @@ def setup_preview_scene(scene, obj, P, view_key):
 
     cam_d = bpy.data.cameras.new("Cam")
     cam_d.lens = 50.0
+    cam_d.clip_start = 0.001          # default 0.1 m would slice the 8 cm minnow's head open
+    cam_d.clip_end = 100.0
     cam = bpy.data.objects.new("Cam", cam_d)
     scene.collection.objects.link(cam)
     direction = VIEW_DIRS[view_key].normalized()
     hfov = 2.0 * math.atan(cam_d.sensor_width / (2.0 * cam_d.lens))
-    dist = radius / math.sin(hfov * 0.5) * 0.74
+    dist = radius / math.sin(hfov * 0.5) * 0.84
     cam.location = centre + direction * dist
     # explicit look-at: camera -Z points at the fish, camera +Y follows `up` (nose-up for the top view)
     up = Vector((1.0, 0.0, 0.0)) if view_key == "top" else Vector((0.0, 0.0, 1.0))

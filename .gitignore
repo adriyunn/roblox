@@ -1,0 +1,11 @@
+# Roblox places and backups never go in git (keep them in OneDrive Backups/)
+*.rbxl
+*.rbxl.lock
+*.rbxlx
+Backups/
+sandboxes/
+# Scratch and caches
+__pycache__/
+*.pyc
+.luaurc.local
+/tmp/

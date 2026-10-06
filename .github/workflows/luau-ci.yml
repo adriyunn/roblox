@@ -1,0 +1,36 @@
+# luau-ci.yml (About Fishing F1 cloud work; Cloud, 2026-10-06)
+# The offline gate as CI: on every push and pull request, install the Luau CLI, syntax-check every
+# module at -O0/-O1/-O2, run every *_test.luau and *_test.py, and fail on CRLF line endings.
+# When the GameOne tree moves into git (process/GIT_MIGRATION.md), point ROOT at Phase5_AF and add
+# its suites to the same job: tests/wsa/*.luau run the same way (from their own folder).
+name: luau-ci
+on:
+  push:
+    paths:
+      - "cloud_work/**"
+      - ".github/workflows/luau-ci.yml"
+  pull_request:
+    paths:
+      - "cloud_work/**"
+      - ".github/workflows/luau-ci.yml"
+jobs:
+  offline-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the Luau CLI
+        run: |
+          mkdir -p "$HOME/bin"
+          PREFIX="$HOME/bin" bash cloud_work/tools/setup_luau.sh
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Offline gate (compile, suites, python tests, line endings)
+        run: bash cloud_work/tests/run_all.sh
+      - name: Type check (advisory; does not fail the build yet)
+        continue-on-error: true
+        run: |
+          find cloud_work/src -name '*.lua' -o -name '*.luau' | sort | xargs -r luau-analyze 2>&1 | tail -n 50

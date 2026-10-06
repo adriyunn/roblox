@@ -1,0 +1,14 @@
+# Line endings: LF everywhere except Windows batch files. A CRLF slip cost the team time on 2026-10-04.
+* text=auto eol=lf
+*.lua text eol=lf
+*.luau text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.bat text eol=crlf
+*.fbx binary
+*.png binary
+*.rbxl binary
+*.rbxm binary

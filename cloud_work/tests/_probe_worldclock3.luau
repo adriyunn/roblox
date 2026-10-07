@@ -1,5 +1,0 @@
-local WorldClock = require("../src/Fishing/Shared/WorldClock")
-local c = WorldClock.new()
-print("advance(c, math.huge) ... (a hang here is the bug)")
-WorldClock.advance(c, math.huge)
-print("returned")

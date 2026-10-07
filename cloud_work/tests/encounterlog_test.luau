@@ -167,6 +167,14 @@ T.throws(function()
 	EncounterLog.bands(twenty, { bed = { hoverS = { 45, 5 } } })
 end, "band must be", "bands with lo > hi errors")
 
+-- R7 (F5): the finished records are capped (reported by the WSP_parity_log notes)
+local capped = EncounterLog.new()
+for i = 1, 1005 do
+	EncounterLog.start(capped, "c" .. i, { anglerId = 1, fishId = i, hookMode = "bed", t = i })
+	EncounterLog.finish(capped, "c" .. i, i + 1, "Leave")
+end
+T.check(#EncounterLog.records(capped) == 1000 and capped.dropped == 5 and EncounterLog.records(capped)[1].id == "c6", "R7 (F5): 1,005 finishes keep the newest 1,000 records and count dropped = 5 (was: unbounded)")
+
 -- ---------------------------------------------------------------- the 20-record parity sample
 -- 8 bed, 7 mid, 5 lure (three Leaves: enc-04, enc-08, enc-12); every number inside the default
 -- parity_bands.json bands (noticeToFirstNip about F1's 4.083 s; bed hover 11..18 s, mid hover 6..12 s,

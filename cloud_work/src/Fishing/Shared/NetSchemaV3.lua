@@ -84,9 +84,7 @@ local function isFinite(v: any): boolean
 	return typeof(v) == "number" and v == v and v ~= math.huge and v ~= -math.huge
 end
 
-local function isInt(v: any): boolean
-	return isFinite(v) and v == math.floor(v)
-end
+local function isInt(v: any): boolean return isFinite(v) and v == math.floor(v) end
 
 -- printable ASCII only (0x20..0x7E)
 local function isAscii(s: string): boolean
@@ -128,9 +126,7 @@ local function walk(v: any, depth: number): number?
 	return total
 end
 
-local function messagesOf(messages: Messages?): Messages
-	return messages or NetSchemaV3.MESSAGES
-end
+local function messagesOf(messages: Messages?): Messages return messages or NetSchemaV3.MESSAGES end
 
 -- ---------------------------------------------------------------- validation
 -- Why a value is not a legal value of the field (the reason strings of the design note, section 5), or nil.
@@ -350,9 +346,7 @@ end
 -- Unique ids in 32..63 on the right side of the C2S/S2C split, known states and types, consistent
 -- min/max/maxLen, sane rates. Checks MESSAGES or the given table. Returns true or errors naming the spot.
 function NetSchemaV3.check(messages: Messages?): boolean
-	local function fail(where: string, why: string)
-		error(string.format("NetSchemaV3.check: %s: %s", where, why))
-	end
+	local function fail(where: string, why: string) error(string.format("NetSchemaV3.check: %s: %s", where, why)) end
 	local byId: { [number]: string } = {}
 	for name, m in messagesOf(messages) do
 		if typeof(name) ~= "string" or name == "" or typeof(m) ~= "table" then fail(tostring(name), "messages map non-empty names to tables") end

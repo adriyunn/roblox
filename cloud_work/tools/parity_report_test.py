@@ -136,6 +136,16 @@ def main() -> int:
         check(report(str(csv_path), "--bands", str(d / "badband.json")).returncode == 2, "a band on a non-numeric field exits 2")
         check(report().returncode == 2, "no input files exits 2")
 
+    # R8 (F6, F7): a BOM-prefixed CSV (Notepad) reads like the plain one; a JSON record that is not an object exits 2
+    with tempfile.TemporaryDirectory() as tmp:
+        d = Path(tmp)
+        (d / "bom.csv").write_bytes(b"\xef\xbb\xbf" + csv_path.read_bytes())
+        proc_bom = report(str(d / "bom.csv"), "--bands", str(BANDS))
+        check(proc_bom.returncode == 0 and table_rows(proc_bom.stdout) == rows_csv, "R8a (F6): a UTF-8 BOM before the header is ignored (was: exit 2, unexpected header)")
+        (d / "notobj.json").write_text('{"v": 1, "records": [1]}', encoding="utf-8")
+        proc_notobj = report(str(d / "notobj.json"), "--bands", str(BANDS))
+        check(proc_notobj.returncode == 2 and "not an object" in proc_notobj.stderr, "R8b (F7): a JSON record that is not an object exits 2 with a message (was: a traceback, exit 1)")
+
     # negative control: the report must be able to fail on the real export once a column is out of band
     with tempfile.TemporaryDirectory() as tmp:
         rows = list(csv.reader(lines))

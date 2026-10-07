@@ -119,6 +119,22 @@ T.throws(function()
 	Recorder.new(clock, 0)
 end, "positive integer", "maxEntries 0 is refused")
 
+-- R3 (F3): a surplus expectOut raised from inside the sink carries this step's time, not the previous one
+local r3rec = Recorder.new(clock)
+r3rec:tap("in", "Cast", { a = 1 })
+R.advance(1)
+r3rec:tap("in", "Press", { b = 2 })
+local r3tape = r3rec:stop()
+local r3player
+r3player = Player.new(r3tape, function(channel)
+	if channel == "Press" then
+		r3player:expectOut("Cue/Verdict", { v = "Good" })
+	end
+end)
+r3player:step(0.5)
+r3player:step(1.0)
+T.eq(r3player:report().mismatches[1].t, 1.0, "R3 (F3): a surplus out raised from inside the sink is stamped with the step time 1.0 (was 0.5, the previous step)")
+
 -- ---------------------------------------------------------------- deepEqual
 local dE = EncounterReplay.deepEqual
 T.check(dE({ a = { b = { 1, 2, { c = "x" } } } }, { a = { b = { 1, 2, { c = "x" } } } }), "deepEqual: nested tables equal")

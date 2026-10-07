@@ -211,6 +211,11 @@ TackleBox.place(corrupt, item("lure", "worm", "line1"), 0, 1, 1)
 corrupt.grid[2] = 999
 T.throws(function() TackleBox.check(corrupt) end, "stray id 999", "negative control: check() reports a stray grid cell")
 
+-- R1 (F1): a save with an id or nextId at 2^53 is refused (there nextId + 1 == nextId, so ids repeat)
+local hugeNext = pcall(TackleBox.deserialize, { w = 8, h = 6, nextId = 2 ^ 53, items = {} })
+local hugeId = pcall(TackleBox.deserialize, { w = 8, h = 6, nextId = 1, items = { { id = 2 ^ 53, kind = "lure", key = "a", shape = { { 0, 0 } }, rot = 0, x = 1, y = 1 } } })
+T.check(not hugeNext and not hugeId, "R1 (F1): deserialize refuses nextId or an id above MAX_ID (at 2^53 two place() calls got the same id)")
+
 -- seeded fuzz: 500 random place / remove / move operations never break the invariant
 local rng = lcg(20261006)
 local names = {}

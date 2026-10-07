@@ -9,8 +9,10 @@
 --   * FishingServer (CatchScene entry): CatchLog.record(log, { speciesId, lengthM, weightKg, zoneId,
 --     dayN, timeOfDay, lureId }); the result's isFirst / isLengthRecord / isWeightRecord drive the
 --     "New species!" / "New record!" cues in CatchSceneView (over FishingNet).
---   * SaveData: store CatchLog.serialize(log); rebuild with CatchLog.deserialize(tbl) in pcall; on a
---     DataStore conflict (UpdateAsync with two versions) use CatchLog.merge(local, remote).
+--   * SaveData: store CatchLog.serialize(log); rebuild with CatchLog.deserialize(tbl) in pcall.
+--     CatchLog.merge(a, b) adds two logs whose catches are DISJOINT (two separate sessions); two
+--     versions that share a common ancestor double-count it, so it is not a conflict resolver for
+--     "local vs remote" (SaveData's session lock makes that conflict impossible anyway).
 --   * dayN / timeOfDay come from whatever owns the day clock; zoneId from FishZones; speciesId from
 --     SpeciesTable (not checked here, so the log stays decoupled from the species list).
 -- No Roblox globals.

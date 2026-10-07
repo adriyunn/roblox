@@ -114,6 +114,16 @@ end
 T.check(same, "the same seed gives the same lengths")
 T.throws(function() SpeciesTable.rollLength("salmon", lcg(1)) end, "unknown species", "rollLength refuses an unknown id")
 
+-- R2 (F2): one sigma per side of the median; the seeded share clamped to exactly max stays under 1%
+local rngR2 = lcg(12345)
+local atMax = 0
+for _ = 1, 100000 do
+	if SpeciesTable.rollLength("trout", rngR2) == 0.55 then
+		atMax += 1
+	end
+end
+T.check(atMax < 1000, string.format("R2 (F2): %d of 100,000 seeded trout clamp to exactly 0.55 m (< 1,000; one sigma for the whole span gave 2,220)", atMax))
+
 -- weightFor
 local w1, w2, w3 = SpeciesTable.weightFor("trout", 0.25), SpeciesTable.weightFor("trout", 0.40), SpeciesTable.weightFor("trout", 0.55)
 T.check(w1 < w2 and w2 < w3, "weightFor is monotonic in length")

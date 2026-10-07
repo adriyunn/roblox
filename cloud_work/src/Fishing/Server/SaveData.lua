@@ -13,12 +13,17 @@
 --     then mints a GUID so the lock still means something in a Studio test server).
 --   * opts.defaults() returns the empty profile table; bump opts.schemaVersion and add
 --     opts.migrations[fromVersion] whenever the shape changes. Keep values JSON-safe (string keys or
---     proper arrays, finite numbers): the save refuses anything HttpService:JSONEncode cannot encode.
---   * Players.PlayerAdded -> sd:load(player) (on nil, "locked": retry after a few seconds, then kick);
---     Players.PlayerRemoving -> sd:onPlayerRemoving(player); game:BindToClose(function()
---     sd:flushAll("close") end); sd:startAutosave() once at server start.
+--     proper 1..n arrays, finite numbers): profile:set refuses anything else (NaN, a function, a sparse
+--     array, mixed keys) at the call site, and the save refuses anything HttpService:JSONEncode cannot
+--     encode, so one bad value cannot silently stop every later save.
+--   * Players.PlayerAdded -> sd:load(player) (on nil, "locked" | "loading": retry after a few seconds,
+--     then kick; on nil, "left" the player is already gone); Players.PlayerRemoving ->
+--     sd:onPlayerRemoving(player) (always, even while a load is still in flight); game:BindToClose(
+--     function() sd:flushAll("close") end); sd:startAutosave() once at server start.
 --   * The key is "u<UserId>" (SaveData.keyFor). The stored record is the data table plus _v (schema),
 --     _lock = { jobId, t } and _savedAt; _lock and _savedAt are stripped from profile.data on load.
+--     Every write refreshes _lock.t; a clean profile gets a heartbeat save every lockStaleS/2 from the
+--     autosave loop so an idle player's lock never looks stale to another server.
 --   * A read-only profile (newer schema, corrupt record, missing migration) plays from memory and is
 --     never written; the caller may tell the player their progress will not save this session.
 
@@ -53,7 +58,55 @@ type Fields = {
 	_autosaveS: number, _maxRetries: number, _backoffS: number, _backoffCapS: number,
 	_lockStaleS: number, _budgetFloor: number, _maxBytes: number, _jobId: string,
 	_profiles: { [number]: Profile }, _order: { number }, _autosaveGen: number, _stats: Stats,
+	_loading: { [number]: boolean }, _left: { [number]: boolean },
 }
+
+local MAX_DEPTH = 32
+
+-- Why a table's keys cannot go through HttpService:JSONEncode and back unchanged (keys must all be
+-- strings, or exactly 1..n with no holes), or nil when they can.
+local function keysProblem(tbl: { [any]: any }): string?
+	local n = #tbl
+	local numeric = 0
+	for k in tbl do
+		if typeof(k) == "number" then
+			if n == 0 or k < 1 or k > n or k ~= math.floor(k) then
+				return "key " .. tostring(k) .. " is not a 1..n array index"
+			end
+			numeric += 1
+		elseif typeof(k) ~= "string" then
+			return "key " .. tostring(k) .. " is not a string"
+		elseif n > 0 then
+			return "mixed array and string keys"
+		end
+	end
+	return if numeric ~= n then "array with a hole" else nil
+end
+
+-- Why a value is not JSON-safe (finite numbers, strings, booleans, tables per keysProblem, 32 deep), or nil.
+local function jsonProblem(v: any, depth: number): string?
+	local t = typeof(v)
+	if t == "nil" or t == "boolean" or t == "string" then
+		return nil
+	elseif t == "number" then
+		return if v ~= v or v == math.huge or v == -math.huge then "non-finite number" else nil
+	elseif t ~= "table" then
+		return "a " .. t .. " cannot be saved"
+	elseif depth >= MAX_DEPTH then
+		return "nested deeper than " .. MAX_DEPTH
+	end
+	local problem = keysProblem(v)
+	if problem then
+		return problem
+	end
+	for _, x in v do
+		problem = jsonProblem(x, depth + 1)
+		if problem then
+			return problem
+		end
+	end
+	return nil
+end
 
 export type SaveData = typeof(setmetatable({} :: Fields, SaveData))
 
@@ -83,20 +136,40 @@ local function makeProfile(player: any, key: string, data: { [string]: any }, re
 		end
 		return node
 	end
-	-- Writes a dot path, creating intermediate tables, and marks the profile dirty.
+	-- Writes a dot path, creating intermediate tables, and marks the profile dirty. Errors (and changes
+	-- nothing) when the value or the resulting shape is not JSON-safe: a NaN, a function, a sparse array
+	-- ("bag.2" on an empty bag), a hole ("bag.1" = nil of two) or mixed keys would otherwise make every
+	-- later save of the whole profile fail.
 	function p.set(self: Profile, path: string, value: any)
 		local parts = splitPath(path)
 		assert(#parts > 0, "SaveData: empty path")
+		local problem = jsonProblem(value, 0)
+		if problem then
+			error(string.format("SaveData: set(%q): value is not JSON-safe: %s", path, problem))
+		end
 		local node: any = self.data
 		for i = 1, #parts - 1 do
 			local nxt = node[parts[i]]
 			if typeof(nxt) ~= "table" then
+				local prev = nxt
 				nxt = {}
 				node[parts[i]] = nxt
+				problem = keysProblem(node)
+				if problem then
+					node[parts[i]] = prev
+					error(string.format("SaveData: set(%q) would make the profile unsaveable: %s", path, problem))
+				end
 			end
 			node = nxt
 		end
-		node[parts[#parts]] = value
+		local last = parts[#parts]
+		local prev = node[last]
+		node[last] = value
+		problem = keysProblem(node)
+		if problem then
+			node[last] = prev
+			error(string.format("SaveData: set(%q) would make the profile unsaveable: %s", path, problem))
+		end
 		self._changes += 1
 	end
 	-- True when a set() happened since the last successful save (or load).
@@ -143,6 +216,8 @@ function SaveData.new(deps: Deps, opts: Opts?): SaveData
 		_jobId = jobId :: string,
 		_profiles = {},
 		_order = {},
+		_loading = {},
+		_left = {},
 		_autosaveGen = 0,
 		_stats = { loads = 0, saves = 0, retries = 0, failures = 0, refused = 0, locked = 0, budgetWaits = 0 },
 	}
@@ -204,9 +279,12 @@ local function lockIsLive(lock: any, jobId: string, now: number, staleS: number)
 end
 
 -- One UpdateAsync writing the profile's record (data + _v, _lock, _savedAt) unless a foreign lock holds
--- the key. claiming = true (load): only a live foreign lock blocks, a stale one is taken over.
--- claiming = false (save): any foreign lock blocks. Returns "written" | "foreign" | "failed", err.
-function SaveData._write(self: SaveData, p: Profile, claiming: boolean): (string, any)
+-- the key. claiming = true (load): only a live foreign lock blocks, a stale one is taken over, and the
+-- record's _savedAt must still equal expectSavedAt (what GetAsync returned), else another server wrote in
+-- between and the data in hand is stale. claiming = false (save): any foreign lock blocks, and a profile
+-- released while the save waited on a retry is not written (the lock must stay clear).
+-- Returns "written" | "foreign" | "released" | "failed", err.
+function SaveData._write(self: SaveData, p: Profile, claiming: boolean, expectSavedAt: any?): (string, any)
 	local now = self._deps.clock()
 	local rec = table.clone(p.data)
 	rec._v = self._schemaVersion
@@ -222,10 +300,22 @@ function SaveData._write(self: SaveData, p: Profile, claiming: boolean): (string
 		self._deps.warn(string.format("SaveData: %s is %d bytes (limit %d), not written", p.key, #encoded, self._maxBytes))
 		return "failed", "too large"
 	end
-	local foreign = false
+	local foreign, released = false, false
 	local ok, err = self:_call("UpdateAsync", p.key, function()
 		return self._store:UpdateAsync(p.key, function(old: any): any
-			if typeof(old) == "table" and typeof(old._lock) == "table" and old._lock.jobId ~= self._jobId then
+			if not claiming and not p.locked then
+				released = true
+				return nil
+			end
+			local oldIsTable = typeof(old) == "table"
+			if claiming then
+				local cur = if oldIsTable then old._savedAt else nil
+				if cur ~= expectSavedAt then
+					foreign = true
+					return nil
+				end
+			end
+			if oldIsTable and typeof(old._lock) == "table" and old._lock.jobId ~= self._jobId then
 				if not claiming or lockIsLive(old._lock, self._jobId, self._deps.clock(), self._lockStaleS) then
 					foreign = true
 					return nil
@@ -236,6 +326,8 @@ function SaveData._write(self: SaveData, p: Profile, claiming: boolean): (string
 	end)
 	if not ok then
 		return "failed", err
+	elseif released then
+		return "released", nil
 	elseif foreign then
 		return "foreign", nil
 	end
@@ -258,12 +350,30 @@ end
 
 -- Loads (or creates) a player's profile and claims its session lock. Returns profile, reason where
 -- reason is "new" | "loaded" | "already-loaded" | "newer" | "corrupt" | "no-migration" (the last three
--- are read-only), or nil, "locked" | "GetAsync failed: .." | "UpdateAsync failed: ..".
+-- are read-only), or nil, "locked" | "loading" | "left" | "GetAsync failed: .." | "UpdateAsync failed: ..".
+-- "locked" also covers a record another server wrote between our GetAsync and our claim (retry: the next
+-- load reads it fresh); "loading" means a load for the same player is still in flight (retry); "left"
+-- means onPlayerRemoving ran while this load waited, so the lock was given straight back.
 function SaveData.load(self: SaveData, player: any): (Profile?, string)
 	local existing = self._profiles[player.UserId]
 	if existing then
 		return existing, "already-loaded"
 	end
+	local userId = player.UserId
+	if self._loading[userId] then
+		return nil, "loading"
+	end
+	self._loading[userId] = true
+	self._left[userId] = nil
+	local ok, p, why = pcall(self._loadInner, self, player)
+	self._loading[userId] = nil
+	if not ok then
+		error(p, 0)
+	end
+	return p, why
+end
+
+function SaveData._loadInner(self: SaveData, player: any): (Profile?, string)
 	local key = SaveData.keyFor(player)
 	self._stats.loads += 1
 	local ok, stored = self:_call("GetAsync", key, function()
@@ -273,6 +383,7 @@ function SaveData.load(self: SaveData, player: any): (Profile?, string)
 		return nil, "GetAsync failed: " .. tostring(stored)
 	end
 	local now = self._deps.clock()
+	local storedSavedAt: any = if typeof(stored) == "table" then stored._savedAt else nil
 	local data: { [string]: any }
 	if stored == nil then
 		data = self._defaults()
@@ -310,7 +421,7 @@ function SaveData.load(self: SaveData, player: any): (Profile?, string)
 	end
 	data._v = self._schemaVersion
 	local p = makeProfile(player, key, data, false, nil)
-	local status, err = self:_write(p, true)
+	local status, err = self:_write(p, true, storedSavedAt)
 	if status == "foreign" then
 		self._stats.locked += 1
 		return nil, "locked"
@@ -318,6 +429,13 @@ function SaveData.load(self: SaveData, player: any): (Profile?, string)
 		return nil, "UpdateAsync failed: " .. tostring(err)
 	end
 	p.locked = true
+	if self._left[player.UserId] then
+		-- the player left while this load waited on the DataStore: no orphan profile, lock given back
+		self._left[player.UserId] = nil
+		p.locked = false
+		self:_unlock(p)
+		return nil, "left"
+	end
 	self:_track(p)
 	return p, if stored == nil then "new" else "loaded"
 end
@@ -328,7 +446,7 @@ function SaveData.getProfile(self: SaveData, player: any): Profile?
 end
 
 -- Saves a loaded profile when dirty (or force). Returns ok, "saved" | "clean" | "read-only" |
--- "not-loaded" | "foreign-lock" | "failed: ..".
+-- "not-loaded" | "foreign-lock" | "released" (release() ran while the save waited) | "failed: ..".
 function SaveData.save(self: SaveData, player: any, reason: string?, force: boolean?): (boolean, string)
 	local p = self._profiles[player.UserId]
 	if p == nil then
@@ -349,8 +467,24 @@ function SaveData.save(self: SaveData, player: any, reason: string?, force: bool
 		self._stats.refused += 1
 		self._deps.warn(string.format("SaveData: %s is locked by another server, save (%s) refused", p.key, tostring(reason)))
 		return false, "foreign-lock"
+	elseif status == "released" then
+		return false, "released"
 	end
 	return false, "failed: " .. tostring(err)
+end
+
+-- One UpdateAsync clearing _lock when it is ours. p.locked must already be false.
+function SaveData._unlock(self: SaveData, p: Profile): boolean
+	local ok = self:_call("UpdateAsync", p.key, function()
+		return self._store:UpdateAsync(p.key, function(old: any): any
+			if typeof(old) == "table" and typeof(old._lock) == "table" and old._lock.jobId == self._jobId then
+				old._lock = nil
+				return old
+			end
+			return nil
+		end)
+	end)
+	return ok
 end
 
 -- Releases the session lock (UpdateAsync clearing _lock when it is ours) and forgets the profile.
@@ -367,21 +501,19 @@ function SaveData.release(self: SaveData, player: any): boolean
 	if not p.locked then
 		return true
 	end
-	local ok = self:_call("UpdateAsync", p.key, function()
-		return self._store:UpdateAsync(p.key, function(old: any): any
-			if typeof(old) == "table" and typeof(old._lock) == "table" and old._lock.jobId == self._jobId then
-				old._lock = nil
-				return old
-			end
-			return nil
-		end)
-	end)
-	p.locked = false
-	return ok
+	p.locked = false -- before the UpdateAsync: a save still retrying must not re-plant the lock
+	return self:_unlock(p)
 end
 
--- PlayerRemoving: force-save then release.
+-- PlayerRemoving: force-save then release. While a load is still in flight it marks the player as gone
+-- so that load gives its lock back instead of tracking an orphan profile.
 function SaveData.onPlayerRemoving(self: SaveData, player: any): (boolean, string)
+	if self._profiles[player.UserId] == nil then
+		if self._loading[player.UserId] then
+			self._left[player.UserId] = true
+		end
+		return false, "not-loaded"
+	end
 	local ok, why = self:save(player, "leave", true)
 	self:release(player)
 	return ok, why
@@ -402,7 +534,8 @@ function SaveData.flushAll(self: SaveData, reason: string?): number
 	return saved
 end
 
--- Starts the autosave loop: every autosaveS, saves each dirty profile (task.delay rescheduling itself).
+-- Starts the autosave loop: every autosaveS, saves each dirty profile (task.delay rescheduling itself)
+-- and heartbeats a clean one whose last write is lockStaleS/2 old, so its _lock.t never looks stale.
 function SaveData.startAutosave(self: SaveData)
 	self._autosaveGen += 1
 	local gen = self._autosaveGen
@@ -410,10 +543,15 @@ function SaveData.startAutosave(self: SaveData)
 		if gen ~= self._autosaveGen then
 			return
 		end
+		local now = self._deps.clock()
 		for _, userId in table.clone(self._order) do
 			local p = self._profiles[userId]
-			if p and p:isDirty() and not p.readOnly then
-				self:save(p.player, "autosave")
+			if p and not p.readOnly then
+				if p:isDirty() then
+					self:save(p.player, "autosave")
+				elseif p.locked and now - (p.savedAt or now) >= self._lockStaleS / 2 then
+					self:save(p.player, "heartbeat", true)
+				end
 			end
 		end
 		if gen == self._autosaveGen then

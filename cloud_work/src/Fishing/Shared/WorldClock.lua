@@ -65,15 +65,22 @@ local BITE_WEATHER: { [Weather]: number } = { clear = 1.0, overcast = 1.1, rain 
 WorldClock.BITE_PHASE = BITE_PHASE
 WorldClock.BITE_WEATHER = BITE_WEATHER
 local WEATHERS: { Weather } = { "clear", "overcast", "rain" }
+local MAX_ROLLS = 1000 -- weather states one advance() may roll through before the timer is simply reset
+
+local function finite(v: any): boolean
+	return typeof(v) == "number" and v == v and v < math.huge and v > -math.huge
+end
 
 -- A new clock. opts overrides any DEFAULTS key; rng (Roblox Random shape) rolls the first weather length.
 function WorldClock.new(opts: { [string]: any }?, rng: any?): Clock
 	local o = opts or {}
 	local D = WorldClock.DEFAULTS
+	local dayLengthS = o.DayLengthS or D.DayLengthS
+	assert(finite(dayLengthS) and dayLengthS > 0, "WorldClock.new: DayLengthS must be a positive number (0 would make advance loop forever)")
 	local clock: Clock = {
 		timeH = o.StartHour or D.StartHour,
 		dayN = 1,
-		dayLengthS = o.DayLengthS or D.DayLengthS,
+		dayLengthS = dayLengthS,
 		weather = "clear",
 		weatherLeftS = WorldClock._rollLength(o, rng),
 		rain = 0,
@@ -87,6 +94,7 @@ function WorldClock._rollLength(o: { [string]: any }, rng: any?): number
 	local D = WorldClock.DEFAULTS
 	local lo = o.WeatherMinS or D.WeatherMinS
 	local hi = o.WeatherMaxS or D.WeatherMaxS
+	assert(finite(lo) and finite(hi) and lo > 0 and hi >= lo, "WorldClock: WeatherMinS must be > 0 and WeatherMaxS >= WeatherMinS (a zero length would roll forever)")
 	local u = if rng then rng:NextNumber() else 0.5
 	return lo + (hi - lo) * u
 end
@@ -118,17 +126,22 @@ end
 -- Advance by dt real seconds: the hour, the day counter, the weather timer and the rain ramp.
 -- Returns the number of weather changes that happened (0 or 1 per call for small dt).
 function WorldClock.advance(clock: Clock, dt: number, rng: any?, opts: { [string]: any }?): number
-	assert(dt >= 0, "WorldClock.advance: dt must be >= 0")
+	assert(finite(dt) and dt >= 0, "WorldClock.advance: dt must be a finite number >= 0")
 	local o = opts or {}
 	local D = WorldClock.DEFAULTS
-	-- time of day
+	-- time of day (whole days by arithmetic, not a loop: an infinite or huge dt must never hang Heartbeat)
 	local hours = dt / clock.dayLengthS * 24
 	local t = clock.timeH + hours
-	while t >= 24 do
+	local days = math.floor(t / 24)
+	if days > 0 then
+		clock.dayN += days
+		t -= days * 24
+	end
+	if t >= 24 then -- float fix-up at an exact multiple of 24
 		t -= 24
 		clock.dayN += 1
 	end
-	clock.timeH = t
+	clock.timeH = math.max(t, 0)
 	-- weather
 	local changes = 0
 	clock.weatherLeftS -= dt
@@ -137,6 +150,10 @@ function WorldClock.advance(clock: Clock, dt: number, rng: any?, opts: { [string
 		clock.rain = RAIN[clock.weather]
 		clock.weatherLeftS += WorldClock._rollLength(o, rng)
 		changes += 1
+		if changes >= MAX_ROLLS then -- a dt spanning more states than this: skip them and start a fresh timer
+			clock.weatherLeftS = WorldClock._rollLength(o, rng)
+			break
+		end
 	end
 	-- rain ramp toward the target
 	local ramp = o.RainRampS or D.RainRampS
@@ -228,13 +245,17 @@ function WorldClock.serialize(clock: Clock): { [string]: any }
 	}
 end
 
--- The inverse of serialize; refuses bad versions and out-of-range hours so a corrupt save cannot
--- freeze the day.
+-- The inverse of serialize; refuses bad versions, out-of-range hours and non-positive or non-numeric
+-- lengths so a corrupt save cannot freeze the day or hang advance().
 function WorldClock.deserialize(t: { [string]: any }): Clock
-	assert(t.v == 1, "WorldClock.deserialize: unsupported version " .. tostring(t.v))
-	assert(typeof(t.timeH) == "number" and t.timeH >= 0 and t.timeH < 24, "WorldClock.deserialize: bad timeH")
-	assert(typeof(t.dayN) == "number" and t.dayN >= 1, "WorldClock.deserialize: bad dayN")
+	assert(typeof(t) == "table" and t.v == 1, "WorldClock.deserialize: unsupported version " .. tostring(typeof(t) == "table" and t.v or t))
+	assert(finite(t.timeH) and t.timeH >= 0 and t.timeH < 24, "WorldClock.deserialize: bad timeH")
+	assert(finite(t.dayN) and t.dayN >= 1, "WorldClock.deserialize: bad dayN")
 	assert(TRANSITIONS[t.weather], "WorldClock.deserialize: bad weather " .. tostring(t.weather))
+	assert(t.dayLengthS == nil or (finite(t.dayLengthS) and t.dayLengthS > 0), "WorldClock.deserialize: bad dayLengthS")
+	assert(t.weatherLeftS == nil or (finite(t.weatherLeftS) and t.weatherLeftS >= 0), "WorldClock.deserialize: bad weatherLeftS")
+	assert(t.rain == nil or (finite(t.rain) and t.rain >= 0 and t.rain <= 1), "WorldClock.deserialize: bad rain")
+	assert(t.rainNow == nil or (finite(t.rainNow) and t.rainNow >= 0 and t.rainNow <= 1), "WorldClock.deserialize: bad rainNow")
 	return {
 		timeH = t.timeH,
 		dayN = t.dayN,

@@ -364,4 +364,76 @@ do
 	T.eq(countCalls(RR, "UpdateAsync"), 0, "negative control: no UpdateAsync at all for a corrupt record")
 end
 
+-- ---------------------------------------------------------------- review regressions (design/reviews/cloud_modules_review_Cloud.md)
+do -- R5a (F8): a save retrying across release() must not re-plant the lock
+	local RR, sd = fresh()
+	local p = RR.Players:addFake(20)
+	local prof = sd:load(p) :: any
+	prof:set("coins", 5)
+	RR.dataStores.failNext("UpdateAsync", "503: Service Unavailable") -- the first attempt fails; the save backs off 1 s
+	RR.task.delay(0.5, function()
+		sd:release(p) -- PlayerRemoving / BindToClose releases during that backoff
+	end)
+	local ok, why = sd:save(p, "autosave")
+	T.check(ok == false and why == "released" and RR.dataStores.stores[STORE]["u20"]._lock == nil, "R5a (F8): a save retrying across release() is cancelled and the store stays unlocked (was: lock re-planted for lockStaleS)")
+end
+do -- R5b (F9): the player leaves while load() is retrying
+	local RR, sd = fresh()
+	local p = RR.Players:addFake(21)
+	RR.dataStores.failNext("GetAsync", "503: Service Unavailable")
+	local removing = {}
+	RR.task.delay(0.5, function()
+		removing = { sd:onPlayerRemoving(p) }
+	end)
+	local prof, why = sd:load(p)
+	T.check(prof == nil and why == "left" and #sd:loadedUserIds() == 0 and RR.dataStores.stores[STORE]["u21"]._lock == nil and removing[2] == "not-loaded", "R5b (F9): a player who left during a retrying load leaves no orphan profile and the lock is given back (was: tracked, locked until server close)")
+end
+do -- R5c (F10): compare-and-set at the claim
+	local RR, sd = fresh()
+	RR.dataStores.stores[STORE]["u22"] = { _v = 1, coins = 10, _savedAt = -100 }
+	local p = RR.Players:addFake(22)
+	RR.dataStores.failNext("UpdateAsync", "503: Service Unavailable")
+	RR.task.delay(0.5, function()
+		RR.dataStores.stores[STORE]["u22"] = { _v = 1, coins = 100, _savedAt = 0.5 } -- another server: load, +90 coins, save, release
+	end)
+	local prof, why = sd:load(p)
+	local again = sd:load(p)
+	T.check(prof == nil and why == "locked" and RR.dataStores.stores[STORE]["u22"].coins == 100 and again ~= nil and again.data.coins == 100, "R5c (F10): a record written between our GetAsync and our claim is not overwritten; the retry loads the fresh 100 coins (was: 10 written back)")
+end
+do -- R5d (F11): two loads in flight for one player
+	local RR, sd = fresh()
+	local p = RR.Players:addFake(23)
+	RR.dataStores.failNext("GetAsync", "503: Service Unavailable")
+	local second = {}
+	RR.task.delay(0.5, function()
+		second = { sd:load(p) }
+	end)
+	local first = sd:load(p)
+	T.check(first ~= nil and second[1] == nil and second[2] == "loading" and #sd:loadedUserIds() == 1, "R5d (F11): a second load while the first is in flight says loading; one profile, one order entry (was: two profiles, order 23,23)")
+end
+do -- R5e (F12): set() refuses what the save would refuse
+	local RR, sd = fresh()
+	local p = RR.Players:addFake(24)
+	local prof = sd:load(p) :: any
+	prof:set("coins", 50)
+	local sparse = pcall(prof.set, prof, "bag.2", "trout")
+	local nan = pcall(prof.set, prof, "stats.ratio", 0 / 0)
+	prof:set("bag.1", "a")
+	prof:set("bag.2", "b")
+	local hole = pcall(prof.set, prof, "bag.1", nil)
+	local fn = pcall(prof.set, prof, "cb", function() end)
+	local ok = sd:save(p, "test")
+	T.check(not sparse and not nan and not hole and not fn and ok == true and RR.dataStores.stores[STORE]["u24"].coins == 50 and prof.data.bag[1] == "a" and prof.data.stats == nil, "R5e (F12): set() errors on a sparse array, NaN, a hole and a function, changing nothing; the profile still saves (was: every later save failed)")
+end
+do -- R6 (F13): an idle profile heartbeats so its lock stays live (reported by the WSS_savedata notes)
+	local RR, sd = fresh()
+	local p = RR.Players:addFake(25)
+	assert(sd:load(p))
+	sd:startAutosave()
+	RR.advance(1900) -- connected and idle for longer than lockStaleS, no set()
+	local other = SaveData.new({ DataStoreService = RR.DataStoreService, Players = RR.Players, HttpService = RR.HttpService, task = RR.task, Enum = RR.Enum, clock = function() return RR.clock.now end, warn = RR.warn, jobId = "job-B" } :: any, { storeName = STORE } :: any)
+	local prof, why = other:load(p)
+	T.check(prof == nil and why == "locked" and sd:stats().saves == 2 and RR.dataStores.stores[STORE]["u25"]._lock.jobId == "job-A", "R6 (F13): a clean profile is heartbeat-saved every lockStaleS/2 (2 saves in 1900 s) so another server still sees a live lock (was: taken over)")
+end
+
 T.finish()

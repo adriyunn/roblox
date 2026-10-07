@@ -86,7 +86,7 @@ def load_records(path: Path) -> list[dict]:
     """Reads a CSV (EncounterLog.toCsv) or JSON (EncounterLog.toTable) export into a list of dicts."""
     if not path.is_file():
         raise InputError(f"no such file: {path}")
-    text = path.read_text(encoding="utf-8")
+    text = path.read_text(encoding="utf-8-sig")  # -sig: Notepad on Windows writes a BOM that is not part of the header
     if path.suffix.lower() == ".json" or text.lstrip().startswith(("{", "[")):
         try:
             data = json.loads(text)
@@ -105,7 +105,14 @@ def load_records(path: Path) -> list[dict]:
             rows = data
         else:
             raise InputError(f"{path}: JSON must be an object with 'records' or a list")
-        return [_normalise(r, f"{path} record {i + 1}") for i, r in enumerate(rows)]
+        if not isinstance(rows, list):
+            raise InputError(f"{path}: 'records' must be a list, got {type(rows).__name__}")
+        records = []
+        for i, r in enumerate(rows):
+            if not isinstance(r, dict):
+                raise InputError(f"{path} record {i + 1}: not an object ({type(r).__name__})")
+            records.append(_normalise(r, f"{path} record {i + 1}"))
+        return records
     lines = text.splitlines()
     reader = csv.reader(lines)
     try:

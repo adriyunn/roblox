@@ -119,4 +119,9 @@ T.throws(function() WorldClock.deserialize({ v = 2 }) end, "unsupported version"
 T.throws(function() WorldClock.deserialize({ v = 1, timeH = 25, dayN = 1, weather = "clear" }) end, "bad timeH", "W36 deserialize refuses hour 25")
 T.throws(function() WorldClock.setWeather(b, "snow" :: any) end, "unknown weather", "W37 setWeather refuses an unknown state")
 
+-- R4 (F4): a corrupt save or a zero config must error, never hang Heartbeat
+T.throws(function() WorldClock.deserialize({ v = 1, timeH = 7, dayN = 1, weather = "clear", dayLengthS = 0 }) end, "bad dayLengthS", "R4a (F4) deserialize refuses dayLengthS 0 (advance looped forever on it)")
+T.throws(function() WorldClock.new({ WeatherMinS = 0, WeatherMaxS = 0 }) end, "WeatherMinS", "R4b (F4) new refuses a zero weather length (advance looped forever on it)")
+T.throws(function() WorldClock.advance(WorldClock.new(), math.huge) end, "finite", "R4c (F4) advance refuses an infinite dt (on the old code this check hangs instead of failing)")
+
 T.finish()

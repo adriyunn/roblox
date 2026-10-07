@@ -41,7 +41,7 @@ export type Record = {
 export type Summary = { n: number, min: number?, median: number?, p95: number?, max: number?, mean: number? }
 export type Band = { metric: string, hookMode: string, n: number, median: number?, lo: number, hi: number, ok: boolean, reason: string? }
 export type BandTable = { [string]: { [string]: { number } } }
-export type Log = { active: { [string]: { info: Info, events: { Event } } }, records: { Record } }
+export type Log = { active: { [string]: { info: Info, events: { Event } } }, records: { Record }, maxRecords: number, dropped: number }
 
 local FIELDS = {
 	"id", "anglerId", "fishId", "speciesId", "hookMode", "outcome", "tNotice", "tEnd",
@@ -53,10 +53,14 @@ local HOOK_MODES = { bed = true, mid = true, lure = true }
 
 EncounterLog.FIELDS = FIELDS
 EncounterLog.CSV_HEADER = table.concat(FIELDS, ",")
+EncounterLog.DEFAULT_MAX_RECORDS = 1000
 
--- A new, empty log.
-function EncounterLog.new(): Log
-	return { active = {}, records = {} }
+-- A new, empty log. opts.maxRecords (default 1000) caps the finished records kept: the oldest drops and
+-- log.dropped counts, so a long-lived server with the logger left on does not grow without bound.
+function EncounterLog.new(opts: { maxRecords: number? }?): Log
+	local max = if opts and opts.maxRecords ~= nil then opts.maxRecords else EncounterLog.DEFAULT_MAX_RECORDS
+	assert(typeof(max) == "number" and max >= 1 and max == math.floor(max), "EncounterLog.new: maxRecords must be a positive integer")
+	return { active = {}, records = {}, maxRecords = max, dropped = 0 }
 end
 
 -- Opens an encounter; info.t is the Notice time. Errors on a duplicate id or a bad hookMode.
@@ -139,10 +143,14 @@ function EncounterLog.finish(log: Log, id: string, t: number, outcome: string): 
 		events = ev,
 	}
 	table.insert(log.records, rec)
+	if #log.records > log.maxRecords then
+		table.remove(log.records, 1)
+		log.dropped += 1
+	end
 	return rec
 end
 
--- The finished records in finish order.
+-- The finished records in finish order (at most maxRecords; log.dropped counts the oldest dropped).
 function EncounterLog.records(log: Log): { Record }
 	return log.records
 end

@@ -1,0 +1,11 @@
+Adrian: resume. The weekly limit reset. Your standing orders hold: `rows_batch2` stays at the 10:15 state (6,851 / 145810016) until the Coordinator announces batch 2 final; then build it ONCE with `Phase4/rojo/make_rows_batch2_WordAgent_ALIENWARE.py --write` from FableDev's dry run, send FableDev the hash, and he pins it after `--dry` shows rows_check clean. Checker rev 6 swaps into the canonical name on "batch 1 done".
+
+**Cloud items routed to you** (branch `claude/hello-b2aghd`, pulled to `%CW%`; written without the project files):
+1. **BACKLOG rows.** Add the cloud package to `BACKLOG.md` as rows AF-C1.. from `%CW%\HANDOFF_COORDINATOR.md` section 0 (24 items, owner and state), so the Coordinator tracks them where everything else lives. Keep the table generated if you can (the handoff table is Markdown).
+2. **Templates.** `%CW%\design\templates\{DESIGN_NOTE,RULING_REQUEST,REVIEW}_TEMPLATE.md`: adopt for every new note, ruling request and review; put copies under `Phase5_AF/design/templates/` and a line in the README's "Start here" table.
+3. **README.** When the cloud modules land in `src/` (Dev1's and Dev2's reviews decide), the generated Staged-files table picks them up; the hand-written part needs one paragraph on `cloud_work` (what it is, that identity there is a commit SHA, not size/hash).
+4. **Handoffs.** Copy `%CW%\HANDOFF_COORDINATOR.md` and `%CW%\kickoff\*.md` into `handoffs/cloud_2026-10-07/` so they are in the tree the sessions read, with a pre-image rule like any doc rewrite.
+5. **Process docs for the Coordinator's rulings** are in `%CW%\process\`; the token audit (`TOKEN_AUDIT.md`) proposes ultracode off for your doc work and effort medium for relay turns: your session was at 828,681 context tokens on Oct 4, the highest of the six. Say whether anything in it would slow your actual work.
+6. **Asset index (later).** When Adrian approves `%CW%\design\SFX_ART_LIST.md`, the generated sounds and mockups get an index page in `evidence/assets/` in your README-table style: file, `C.Sounds` key, prompt, length, loop, 3D/owner-only, licence line ("original to GameOne").
+
+Line endings: everything you write stays LF; `%CW%\tools\check_lf.py <folder>` checks a tree in one command.

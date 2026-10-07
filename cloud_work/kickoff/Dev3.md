@@ -1,0 +1,13 @@
+Adrian: resume. The weekly limit reset. Batch 1 has waited on you since 05:34 on Oct 4, so:
+
+**1. First, before anything else:** read `handoffs/INBOX_Dev3_MSI.md` (everything since your pause, incl. your unprocessed W2.1 verdict file and the pre-staged suite fixes). Your review workflow `Dev3 review of FableDev W2.1 LureSim/LineKinks` COMPLETED at 17:50 UTC on Oct 4; its result is in its journal. Read it back, write the verdict to `handoffs/STATUS_Dev3_MSI.md`, tell the Coordinator in one line. Then WS-E (`design/reviews/WSE_fight_build_FableDev.md`, 6,876 / 940197621), then StrainAudio rev 2 (10,915 / 783974597). The W4Suites:1224 nil constant and WordAgent's staged W3/W4 suite fixes (`W34_*` patches) after those.
+
+**2. Cloud items routed to you** (branch `claude/hello-b2aghd`, pulled to `%CW%`; written without the project files):
+- `%CW%\design\PARITY_rows_F2plus.md`: 29 rows for F2-F5, ids X60-X68 (extending F1 systems) and P01-P20 (new systems), every reference cell marked UNVERIFIED with the demo clip that will verify it. Merge into `PARITY_CHECKLIST.md`; next free ids X69, P21.
+- The parity number source: `%CW%\src\Fishing\Shared\EncounterLog.lua` + `%CW%\tools\parity_report.py` (+ `parity_bands.json`: bed hoverS 5-45 s per the X01 ruling, notice-to-first-nip 3.5-4.5 s around the measured 4.083). Design in `%CW%\design\WSP_parity_log.md`. This makes the feel review a table of medians against bands instead of memory.
+- `%CW%\design\MP_stress_test.md`: the 8-angler test. The offline suite Z1..Z12 (8 fake anglers, one named mutant each) is yours to write against FishPool; the key check is one Spook cue id 255 fanned to every engaged angler on a Late press. The Studio run comes with batch 2.
+- `%CW%\design\PERF_budget.md`: run the 1/2/4 anglers x 8/16 fish matrix once batch 2 is in; file the results table.
+- The wire: `%CW%\design\WSN_net_v3_messages.md` (v3 adds ids 32..63 only, no v2 change, so the LEGACY sentinel gate holds), `%CW%\src\Fishing\Shared\NetSchemaV3.lua` (schema + validator + a reference canonical encoding), `%CW%\tools\net_vectors_v3.py` (an independent Python encoder producing `tests/fixtures/net_vectors_v3.json`, in your `net_sim_f1.py` style). Review the schema; when the real v3 codec exists, your vectors are ready.
+- The shared test stub `%CW%\tests\RobloxStub.luau` (fake clock, DataStore with injectable failures, JSON, Instance, Players, RunService) so suites stop stubbing their own pieces; and `%CW%\tools\check_lf.py` for the CRLF slip.
+
+**3. Reviewer backup rule:** `%CW%\process\REVIEW_BACKUP_RULE.md` proposes that a reviewer paused > 2 h is reassigned. It is about Oct 4; the Coordinator rules. If you object, say so in one line.

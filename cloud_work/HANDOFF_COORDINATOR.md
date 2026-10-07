@@ -4,6 +4,10 @@ From Cloud (claude.ai/code session roblox-9d), written while the MSI and Alienwa
 no access to `Roblox/GameOne`. Branch `claude/hello-b2aghd` of `adriyunn/roblox`, folder `cloud_work/`.
 Pull it with `cloud_work/pull_cloud_work.bat` (clones next to GameOne, never into it).
 
+**Round 2 (2026-10-07) is at the end of this file:** the adversarial review that fixed 13 bugs in the
+modules, six more design notes, the v3 net schema with vectors, the tackle-box and catch-card client
+logic, the Roblox constraints note, UI mockups, the kickoff messages, and the cloud session hook.
+
 **How to read this:** every item is either NEW (self-contained, tested here, drop in and review) or a
 DRAFT (written against code I only know from the transcripts; the named dev fits it to the real
 bytes). Nothing here carries a size/hash pair: I cannot compute the team's checksum, so identity is
@@ -118,3 +122,101 @@ attributes, Players, RunService) so suites stop stubbing their own pieces.
 - The CI workflow runs only on `cloud_work/**` until the GameOne tree is in git.
 - Two module agents stopped reporting when the cloud container restarted; their files were complete
   on disk and pass the gate, which is the evidence here, not their reports.
+
+---
+
+# Round 2 (2026-10-07)
+
+Everything below is on the same branch. The gate after round 2: **run_all: PASS, 15 suites, 1,018
+checks, `luau-analyze` clean on every module under `src/`.** Round 1's modules were reviewed and
+fixed (section R2.1), so the file list in section 1 above still holds but the code moved; Dev1
+re-reviews the fixed hunks, not the whole files.
+
+## R2.0 Routing, one line each
+
+| # | Item | Owner | Action | Unblocks |
+|---|---|---|---|---|
+| 25 | `design/reviews/cloud_modules_review_Cloud.md` | Dev1 | Re-review the 13 fixed hunks (listed by finding id); rule on F14 | the modules' approval |
+| 26 | `design/WST_tacklebox.md`, `WSS_species.md`, `WSE_economy.md`, `WSL_catchlog.md`, `WSS_savedata.md`, `WSP_parity_log.md` | Coordinator | Rule on each note's rulings (the key one per note is in R2.2) | F2 design approval |
+| 27 | `design/WSN_net_v3_messages.md` + `src/Fishing/Shared/NetSchemaV3.lua` + `tools/net_vectors_v3.py` | Dev3 | Review the 13 messages and the StateRules/RequestGuard rows; keep the vectors for the real codec | the F2 wire |
+| 28 | `src/Fishing/Client/TackleBoxUI.lua`, `CatchCard.lua`, `tests/TackleBoxUI_sandbox_driver.client.lua` | Dev2 | Review as new files; run the driver in a sandbox | the box and card screens |
+| 29 | `design/ROBLOX_constraints.md` | Coordinator, Adrian | Read section 7 (12 decisions it forces); the maturity label and the mobile share come first | F2-F5 scope |
+| 30 | `design/mockups/` | Dev2, Adrian | Look reference for the three screens; swap the PlayStation glyphs | the screens' look |
+| 31 | `kickoff/*.md` | Adrian | Paste one per session after the pull; Coordinator first | the restart |
+| 32 | `../CLAUDE.md`, `../.claude/hooks/session-start.sh` | FableDev | Cloud sessions on this repo now install the Luau CLI and bpy on start; merge to the default branch when the tree moves to git | cloud sessions |
+| 33 | `blender/exports_v2/`, `blender/README_v2.md` | Dev2 | (see R2.6 when it lands) | F2 species, props |
+
+## R2.1 The review (item 25)
+
+An adversarial pass over the eight modules, the parity tool and the stub, in the team's find/refute
+shape: every finding was reproduced with a snippet before it was kept, every fix got a regression
+check that fails on the round-1 code (commit `a1c3185`). 14 confirmed findings, 13 fixed, 1 open:
+
+| Severity | Where | What it was | Fix |
+|---|---|---|---|
+| must | WorldClock F4 | `advance` hung on an infinite dt, a zero day length from a save, or zero weather lengths | floor-arithmetic day wrap, validated `new`/`deserialize`, a roll cap |
+| must | SaveData F8 | a save retrying across `release()` re-planted our lock after the player left (30-minute lockout elsewhere) | release flips the profile first; the save transform cancels |
+| must | SaveData F9 | a player leaving during a retrying load left an orphan profile holding the lock | `onPlayerRemoving` marks the load; load unlocks and returns nil, "left" |
+| must | SaveData F12 | `set()` accepted NaN, sparse arrays, functions; every later save failed silently | `set()` validates and errors at the call site |
+| should | SaveData F10, F11, F13 | the claim was not compare-and-set (a concurrent write was lost); two loads in flight made two profiles; an idle player's lock went stale while connected | CAS on `_savedAt`; in-flight guard; a heartbeat save at half the stale window |
+| should | TackleBox F1 | an id of 2^53 in a save made `nextId + 1 == nextId`, two items got one id | `MAX_ID = 2^31`, refused in `deserialize` |
+| should | SpeciesTable F2 | one sigma for the whole range clamped 2.2 % of trout to exactly 0.55 m | one sigma per side (0.65 %) |
+| should | EncounterReplay F3, EncounterLog F5, parity_report F6, F7 | replay timestamps off by one step; records unbounded; a BOM or a bad record crashed the tool | fixed; `maxRecords` default 1,000 |
+| open | SaveData F14 | `flushAll` on shutdown is sequential with budget waits: 3 dirty profiles under a zero budget took 276 s of fake time against Roblox's 30 s `BindToClose` | design-level: parallel saves, no budget wait on close; Dev1 rules |
+
+Security section in the review: what a malicious client payload can and cannot do through
+`TackleBox` moves, `SaveData` paths, the deserializers and `brainConfig`.
+
+## R2.2 The six design notes (item 26), the key ruling each asks for
+
+| Note | Asks | Recommends |
+|---|---|---|
+| `WST_tacklebox.md` | A full box at the catch and the player does nothing: release after 20 s, or wait for a choice | B, wait: the reference makes the player decide; nothing is lost silently |
+| `WSS_species.md` | Per-species fight numbers in F2, or the one F1 fight for all with only the snap compare per species | B: the 75 %-done F1 fight does not move for F2 |
+| `WSE_economy.md` | Coins 1:1 with the demo's readouts (four median trout = 32), retuned after clip V50, or GameOne's own scale | A |
+| `WSL_catchlog.md` | Does a released fish count | A, yes: `record` runs at CatchScene entry, before the box |
+| `WSS_savedata.md` | The lock in the record (one UpdateAsync) or in MemoryStoreService (~120 s TTL) | A for F2 |
+| `WSP_parity_log.md` | Logging always on with a 1,000-record cap, or behind a dev flag | A; drop the placeholder mid-water band until 5 measured encounters exist |
+
+## R2.3 The wire (item 27)
+
+Thirteen v3 messages in ids 32..63 (C→S 32..47, S→C 48..63); no v2 id changes, so the W2 LEGACY
+sentinel gate holds. `NetSchemaV3.lua` is a declarative schema with `validate`, `allowed(name,
+state)`, and a REFERENCE canonical encoding so Dev3's vectors have one unambiguous byte form; the real
+codec stays FishingNet's. `net_vectors_v3.py` is the independent Python encoder (Dev3's
+`net_sim_f1.py` style): 92 vectors, 43 valid and 49 invalid with reasons, a `--check` that fails on
+drift. The note recommends attributes for the 5 s world tick and `WorldSync` only on a weather change,
+and a full `TackleSync` over deltas at this size (~490 bytes compact for a full 8x6 box).
+
+## R2.4 The screens (items 28, 30)
+
+`TackleBoxUI` owns the grid geometry, hit testing and a drag state machine whose four verbs are the
+same for mouse, touch and gamepad; the renderer injects `canPlace` so the ghost colour and the drop
+agree with the server. A press-and-release without moving enters a `menu` state (sell/discard for
+touch and gamepad) and sends nothing. `CatchCard` formats the card (metric or imperial with ounce
+carry, badges in a fixed order, the price). The sandbox driver draws it with Frames in a Play session;
+it compiled here and was never run in Studio. The mockups show the intended feel; the tackle-box one
+uses PlayStation button shapes that must be replaced.
+
+## R2.5 Roblox constraints (item 29), the five numbers that change decisions
+
+1. Blood: "heavy realistic blood" is Restricted (verified 18+); pixelated, off-colour blood stays
+   Mild. Filleting must be stylised and dark, not red, to keep the Mild label.
+2. About 4 in 5 Roblox users are on mobile; 44 % of FY2025 revenue came through Apple and Google.
+   Touch is F1-to-R1 work, not a later phase. Keep Phone/Tablet unticked until a phone playtest passes.
+3. DataStore write budget 60 + 40 x players per minute per server (380 at 8 players); `UpdateAsync`
+   counts as read + write; per-key 4 MB/min. The 60 s autosave holds; add jitter.
+4. Audio uploads are private to the uploader since 2022: generated sounds must be uploaded by the game
+   owner's account or group, a day before a playtest (moderation takes hours).
+5. Remotes cap at ~500 requests/s per client across all RemoteEvents; the mesh import limit is now
+   20,000 triangles, not 10,000.
+
+## R2.6 Blender round 2 (item 33)
+
+Written when the asset agent reports; see `blender/README_v2.md`.
+
+## R2.7 Housekeeping
+
+`CLAUDE.md` at the repo root carries the conventions above; `.claude/hooks/session-start.sh` installs
+the Luau CLI, `bpy` and Pillow in every cloud session on this repo (validated: hook exit 0, lint and a
+suite pass). `kickoff/` holds one message per session. Probe files from the review were removed.

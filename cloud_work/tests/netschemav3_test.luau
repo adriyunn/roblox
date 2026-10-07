@@ -275,12 +275,12 @@ for i = 1, #vectors do
 			local dName, dBack = N.decode(N.fromHex(v.hex))
 			decOk = dName == v.name and payloadEq(v.name, dBack, v.payload)
 		end
-		T.check(hex == v.hex and decOk, string.format("vector %d %s: encode gives the hex and decode gives the payload back", i, v.name)
+		T.check(hex == v.hex and decOk, string.format("vector %s %s: encode gives the hex and decode gives the payload back", tostring(i), tostring(v.name))
 			.. (if hex ~= v.hex then string.format("  (got %s, want %s)", string.sub(hex, 1, 40), string.sub(v.hex, 1, 40)) elseif not decOk then "  (decode differs)" else ""))
 	else
 		nInvalid += 1
 		local vOk, vWhy = N.validate(v.name, v.payload)
-		T.check(not vOk and vWhy == v.reason, string.format("vector %d %s: rejected with '%s'", i, v.name, v.reason) .. (if vWhy ~= v.reason then "  (got " .. tostring(vWhy) .. ")" else ""))
+		T.check(not vOk and vWhy == v.reason, string.format("vector %s %s: rejected with '%s'", tostring(i), tostring(v.name), tostring(v.reason)) .. (if vWhy ~= v.reason then "  (got " .. tostring(vWhy) .. ")" else ""))
 	end
 	local pm = perMessage[v.name] or { 0, 0 }
 	pm[if v.valid then 1 else 2] += 1

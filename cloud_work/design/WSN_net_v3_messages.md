@@ -316,7 +316,7 @@ extends to these six rows with the same driver.
 
 | Test | Proves | Negative control | Expected |
 |---|---|---|---|
-| `tests/netschemav3_test.luau` | check() passes; mutated schema copies fail; every field type and reason; allowed per state; encode/decode; all 92 vectors agree with the Python encoder | a duplicate id fails check(); a flipped byte and a changed payload no longer match | `netschemav3_test: PASS 190` |
+| `tests/netschemav3_test.luau` | check() passes; mutated schema copies fail; every field type and reason; allowed per state; encode/decode; all 92 vectors agree with the Python encoder | a duplicate id fails check(); a flipped byte and a changed payload no longer match | `netschemav3_test: PASS 210` |
 | `tools/net_vectors_v3_test.py` | --selftest; deterministic generation; the committed fixtures are current; --check exits 0 | one flipped hex byte makes --check exit 1; a stale Luau data module fails | `net_vectors_v3_test: PASS 27` |
 | `rules_test.luau` (Dev3) | the 6 new rows match `NetSchemaV3.allowed` for all 10 states | a row flipped by hand FAILs | Dev3 |
 | `net_vectors_test.luau` (Dev3, v2) | unchanged bytes: the LEGACY gate still passes with v3 in the tree | — | unchanged count |

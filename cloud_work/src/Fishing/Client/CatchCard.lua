@@ -29,7 +29,7 @@ local CatchCard = {}
 
 export type Units = "metric" | "imperial"
 export type Catch = { speciesId: string, lengthM: number, weightKg: number, zoneId: string, lureId: string }
-export type Result = { isFirst: boolean, isLengthRecord: boolean, isWeightRecord: boolean, countNow: number? }
+export type Result = { isFirst: boolean, isLengthRecord: boolean, isWeightRecord: boolean, countNow: number } -- CatchLog.Result's shape
 export type Opts = {
 	units: Units?,
 	showPrice: boolean?,

@@ -33,11 +33,11 @@ T.eq(CatchCard.formatCoins(1), "1 coin", "1 coin singular")
 
 -- ---------------------------------------------------------------- badges
 T.eq(join(CatchCard.badgeOrder), "New species! | New record! | Heaviest yet!", "badgeOrder is the fixed order")
-T.eq(join(CatchCard.badgesFor({ isFirst = true, isLengthRecord = true, isWeightRecord = true })), "New species!", "a first catch shows only New species!")
-T.eq(join(CatchCard.badgesFor({ isFirst = false, isLengthRecord = true, isWeightRecord = true })), "New record! | Heaviest yet!", "a double record shows both, in order")
-T.eq(join(CatchCard.badgesFor({ isFirst = false, isLengthRecord = false, isWeightRecord = true })), "Heaviest yet!", "a weight-only record")
-T.eq(join(CatchCard.badgesFor({ isFirst = false, isLengthRecord = true, isWeightRecord = false })), "New record!", "a length-only record")
-T.eq(#CatchCard.badgesFor({ isFirst = false, isLengthRecord = false, isWeightRecord = false }), 0, "no badges on an ordinary repeat")
+T.eq(join(CatchCard.badgesFor({ isFirst = true, isLengthRecord = true, isWeightRecord = true, countNow = 1 })), "New species!", "a first catch shows only New species!")
+T.eq(join(CatchCard.badgesFor({ isFirst = false, isLengthRecord = true, isWeightRecord = true, countNow = 1 })), "New record! | Heaviest yet!", "a double record shows both, in order")
+T.eq(join(CatchCard.badgesFor({ isFirst = false, isLengthRecord = false, isWeightRecord = true, countNow = 1 })), "Heaviest yet!", "a weight-only record")
+T.eq(join(CatchCard.badgesFor({ isFirst = false, isLengthRecord = true, isWeightRecord = false, countNow = 1 })), "New record!", "a length-only record")
+T.eq(#CatchCard.badgesFor({ isFirst = false, isLengthRecord = false, isWeightRecord = false, countNow = 1 }), 0, "no badges on an ordinary repeat")
 
 -- ---------------------------------------------------------------- the card from real CatchLog results
 local log = CatchLog.new()
@@ -79,7 +79,7 @@ T.eq(card.lines[#card.lines], "Sells for " .. card.priceText :: string, "the pri
 card = CatchCard.build(first, r1, nil)
 T.eq(card.lengthText, "40.0 cm", "opts nil defaults to metric")
 local minTrout = { speciesId = "trout", lengthM = 0.25, weightKg = 0.172, zoneId = "reeds", lureId = "worm" }
-card = CatchCard.build(minTrout, { isFirst = false, isLengthRecord = false, isWeightRecord = false }, { showPrice = true })
+card = CatchCard.build(minTrout, { isFirst = false, isLengthRecord = false, isWeightRecord = false, countNow = 4 }, { showPrice = true })
 T.eq(card.priceText, "1 coin", "a minimum trout sells for 1 coin (singular)")
 T.eq(card.sizeClass, "small", "0.25 m trout is small")
 card = CatchCard.build({ speciesId = "trout", lengthM = 0.50, weightKg = 1.375, zoneId = "reeds", lureId = "worm" }, r2, nil)

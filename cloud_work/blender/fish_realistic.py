@@ -81,45 +81,46 @@ FIN_ID = {k: i for i, k in enumerate(FIN_KINDS)}
 
 # shared outline templates (s along the fin base 0 front .. 1 rear, height fraction)
 OUT_DORSAL = [(0.0, 0.62), (0.10, 1.0), (0.35, 0.86), (0.70, 0.60), (1.0, 0.40)]
-OUT_SPINY = [(0.0, 0.70), (0.18, 1.0), (0.50, 0.92), (0.80, 0.70), (1.0, 0.45)]
-OUT_SOFT = [(0.0, 0.70), (0.15, 1.0), (0.55, 0.85), (1.0, 0.55)]
+OUT_SPINY = [(0.0, 0.30), (0.28, 1.0), (0.55, 0.88), (0.80, 0.62), (1.0, 0.30)]
+OUT_SOFT = [(0.0, 0.40), (0.22, 1.0), (0.60, 0.82), (1.0, 0.42)]
+OUT_ROUND = [(0.0, 0.40), (0.35, 1.0), (0.70, 0.88), (1.0, 0.35)]
 OUT_ANAL = [(0.0, 0.60), (0.15, 1.0), (0.55, 0.75), (1.0, 0.40)]
 OUT_LOBE = [(0.0, 0.20), (0.35, 1.0), (0.75, 0.85), (1.0, 0.25)]
-OUT_CARP_DORSAL = [(0.0, 0.55), (0.08, 1.0), (0.30, 0.70), (0.60, 0.50), (1.0, 0.35)]
+OUT_CARP_DORSAL = [(0.0, 0.40), (0.07, 1.0), (0.25, 0.62), (0.60, 0.42), (1.0, 0.30)]
 
 PRESETS = {
     # rainbow trout 0.40 m: streamlined, rounded snout, lower jaw a touch longer, adipose fin
     "trout": dict(
         kind="fish", length_m=0.40, tail_len=0.17,
-        top=[(0.0, 0.0), (0.02, 0.030), (0.08, 0.062), (0.22, 0.098), (0.42, 0.118), (0.62, 0.105),
+        top=[(0.0, 0.0), (0.02, 0.034), (0.08, 0.064), (0.22, 0.098), (0.42, 0.118), (0.62, 0.105),
              (0.80, 0.068), (0.92, 0.046), (1.0, 0.042)],
-        bot=[(0.0, 0.0), (0.02, -0.024), (0.08, -0.054), (0.22, -0.086), (0.40, -0.104), (0.60, -0.094),
+        bot=[(0.0, 0.0), (0.02, -0.028), (0.08, -0.056), (0.22, -0.086), (0.40, -0.104), (0.60, -0.094),
              (0.80, -0.058), (0.92, -0.040), (1.0, -0.036)],
         wid=[(0.0, 0.0), (0.02, 0.016), (0.08, 0.038), (0.22, 0.056), (0.42, 0.062), (0.62, 0.054),
              (0.80, 0.034), (0.92, 0.020), (1.0, 0.016)],
         sec_exp=0.88, belly_taper=0.18, head_len=0.26, head_flat=0.0, head_wide=0.0,
-        nose_t=0.016, mouth_t=0.065, mouth_notch=0.05, jaw_proj=0.010,
-        gill_inset=0.03, gill_bulge=0.022, eye_t=0.40, eye_z=0.40, eye_r=0.031,
+        nose_t=0.02, mouth_t=0.065, mouth_notch=0.05, jaw_proj=0.010,
+        gill_inset=0.045, gill_bulge=0.022, eye_t=0.38, eye_z=0.42, eye_r=0.021,
         rings=30, sides=18, subdiv=True, fin_th=0.004, barbels=False,
         fins=[
-            dict(kind="dorsal", t0=0.44, t1=0.56, h=0.105, rake=0.30, outline=OUT_DORSAL, rays=10),
+            dict(kind="dorsal", t0=0.44, t1=0.57, h=0.085, rake=0.30, outline=OUT_DORSAL, rays=10),
             dict(kind="adipose", t0=0.77, t1=0.81, h=0.030, rake=0.6, outline=OUT_LOBE, rays=0, cols=5),
-            dict(kind="caudal", span=0.24, fork=0.22, round=0.35, rays=14),
-            dict(kind="anal", t0=0.72, t1=0.80, h=0.070, rake=0.35, outline=OUT_ANAL, rays=8),
-            dict(kind="pelvic", t0=0.50, base=0.035, len=0.075, dir=(-0.55, 0.45, -0.55), rays=6),
-            dict(kind="pectoral", t0=0.245, base=0.040, len=0.105, dir=(-0.60, 0.70, -0.38), rays=8),
+            dict(kind="caudal", span=0.23, fork=0.18, round=0.45, rays=14),
+            dict(kind="anal", t0=0.72, t1=0.80, h=0.065, rake=0.35, outline=OUT_ANAL, rays=8),
+            dict(kind="pelvic", t0=0.50, base=0.035, len=0.070, dir=(-0.55, 0.45, -0.55), rays=6),
+            dict(kind="pectoral", t0=0.235, base=0.040, len=0.095, dir=(-0.60, 0.70, -0.45), rays=8),
         ],
         pattern=dict(
-            back=(0.16, 0.24, 0.11), side=(0.62, 0.66, 0.60), belly=(0.92, 0.92, 0.86),
+            back=(0.12, 0.19, 0.11), side=(0.60, 0.65, 0.60), belly=(0.92, 0.92, 0.86),
             back_pos=0.80, side_pos=0.50, belly_pos=0.22,
-            band=(0.78, 0.30, 0.34), band_vz=0.02, band_w=0.16, band_strength=0.75, band_ux=(0.06, 0.95),
-            cheek=(0.80, 0.42, 0.42), cheek_strength=0.55,
-            spots=(0.05, 0.05, 0.04), spot_cell_m=0.014, spot_size=0.22, spot_density=0.55,
-            spot_floor=-0.25, spot_aniso=(1.0, 1.0, 1.0), spot_fins=("dorsal", "adipose", "caudal"),
+            band=(0.80, 0.28, 0.32), band_vz=0.0, band_w=0.22, band_strength=0.8, band_ux=(0.06, 0.95),
+            cheek=(0.82, 0.40, 0.42), cheek_strength=0.6,
+            spots=(0.05, 0.05, 0.04), spot_cell_m=0.0080, spot_size=0.19, spot_density=0.55,
+            spot_floor=-0.15, spot_aniso=(1.0, 1.0, 1.0), spot_fins=("dorsal", "adipose", "caudal"),
             bars=0, scale_cell_m=0.006, scale_strength=0.10, scale_var=0.06,
-            fins={"dorsal": (0.36, 0.40, 0.30), "adipose": (0.40, 0.36, 0.30), "caudal": (0.40, 0.42, 0.34),
-                  "anal": (0.62, 0.50, 0.44), "pelvic": (0.68, 0.52, 0.44), "pectoral": (0.64, 0.56, 0.46)},
-            fin_tip=(0.90, 0.90, 0.86), fin_tip_strength=0.5, fin_edge_dark=0.35, fin_ray_dark=0.18,
+            fins={"dorsal": (0.26, 0.30, 0.20), "adipose": (0.30, 0.26, 0.20), "caudal": (0.30, 0.32, 0.24),
+                  "anal": (0.50, 0.38, 0.32), "pelvic": (0.54, 0.40, 0.32), "pectoral": (0.50, 0.42, 0.32)},
+            fin_tip=(0.90, 0.90, 0.86), fin_tip_strength=0.2, fin_edge_dark=0.3, fin_ray_dark=0.12,
             iris=(0.86, 0.72, 0.36), pupil=(0.02, 0.02, 0.02),
             mouth_vz=-0.18, mouth_len=0.42, gill_dark=0.40,
         ),
@@ -135,11 +136,11 @@ PRESETS = {
              (0.80, 0.034), (0.92, 0.020), (1.0, 0.016)],
         sec_exp=0.86, belly_taper=0.25, head_len=0.30, head_flat=0.0, head_wide=0.0,
         nose_t=0.016, mouth_t=0.07, mouth_notch=0.05, jaw_proj=0.004,
-        gill_inset=0.035, gill_bulge=0.025, eye_t=0.38, eye_z=0.40, eye_r=0.036,
+        gill_inset=0.05, gill_bulge=0.025, eye_t=0.38, eye_z=0.42, eye_r=0.028,
         rings=28, sides=18, subdiv=True, fin_th=0.004, barbels=False,
         fins=[
-            dict(kind="dorsal", t0=0.30, t1=0.52, h=0.150, rake=0.15, outline=OUT_SPINY, rays=13, scallop=0.10),
-            dict(kind="dorsal2", t0=0.55, t1=0.69, h=0.090, rake=0.25, outline=OUT_SOFT, rays=9),
+            dict(kind="dorsal", t0=0.30, t1=0.53, h=0.145, rake=0.10, outline=OUT_SPINY, rays=13, scallop=0.12),
+            dict(kind="dorsal2", t0=0.56, t1=0.69, h=0.085, rake=0.25, outline=OUT_SOFT, rays=9),
             dict(kind="caudal", span=0.26, fork=0.08, round=0.45, rays=14),
             dict(kind="anal", t0=0.60, t1=0.71, h=0.085, rake=0.30, outline=OUT_ANAL, rays=8),
             dict(kind="pelvic", t0=0.36, base=0.035, len=0.085, dir=(-0.50, 0.42, -0.62), rays=6),
@@ -150,7 +151,7 @@ PRESETS = {
             back_pos=0.82, side_pos=0.48, belly_pos=0.20,
             band=None, cheek=(0.62, 0.60, 0.26), cheek_strength=0.3,
             spots=None, spot_fins=(),
-            bars=7, bar_colour=(0.08, 0.12, 0.05), bar_strength=0.85, bar_width=0.42, bar_ux=(0.26, 0.86),
+            bars=6, bar_colour=(0.05, 0.09, 0.03), bar_strength=0.92, bar_width=0.40, bar_ux=(0.27, 0.86),
             bar_floor=-0.45,
             scale_cell_m=0.0055, scale_strength=0.14, scale_var=0.08,
             fins={"dorsal": (0.30, 0.34, 0.22), "dorsal2": (0.42, 0.44, 0.28), "caudal": (0.86, 0.36, 0.08),
@@ -172,12 +173,12 @@ PRESETS = {
              (0.80, 0.034), (0.92, 0.020), (1.0, 0.016)],
         sec_exp=0.92, belly_taper=0.12, head_len=0.32, head_flat=0.45, head_wide=0.30,
         nose_t=0.02, mouth_t=0.10, mouth_notch=0.045, jaw_proj=0.014,
-        gill_inset=0.03, gill_bulge=0.025, eye_t=0.56, eye_z=0.50, eye_r=0.026,
-        rings=32, sides=18, subdiv=True, fin_th=0.004, barbels=False,
+        gill_inset=0.04, gill_bulge=0.025, eye_t=0.56, eye_z=0.55, eye_r=0.017,
+        rings=28, sides=18, subdiv=True, fin_th=0.004, barbels=False,
         fins=[
-            dict(kind="dorsal", t0=0.68, t1=0.81, h=0.095, rake=0.30, outline=OUT_SOFT, rays=10),
+            dict(kind="dorsal", t0=0.68, t1=0.81, h=0.085, rake=0.30, outline=OUT_ROUND, rays=10),
             dict(kind="caudal", span=0.22, fork=0.25, round=0.40, rays=14),
-            dict(kind="anal", t0=0.70, t1=0.81, h=0.085, rake=0.30, outline=OUT_SOFT, rays=9),
+            dict(kind="anal", t0=0.70, t1=0.81, h=0.078, rake=0.30, outline=OUT_ROUND, rays=9),
             dict(kind="pelvic", t0=0.50, base=0.035, len=0.075, dir=(-0.55, 0.42, -0.58), rays=6),
             dict(kind="pectoral", t0=0.30, base=0.040, len=0.085, dir=(-0.60, 0.68, -0.40), rays=8),
         ],
@@ -185,8 +186,8 @@ PRESETS = {
             back=(0.10, 0.18, 0.07), side=(0.34, 0.42, 0.18), belly=(0.90, 0.90, 0.74),
             back_pos=0.80, side_pos=0.45, belly_pos=0.22,
             band=None, cheek=(0.42, 0.46, 0.20), cheek_strength=0.3,
-            spots=(0.88, 0.84, 0.50), spot_cell_m=0.035, spot_size=0.33, spot_density=0.75,
-            spot_floor=-0.55, spot_aniso=(0.55, 1.6, 1.6), spot_fins=(),
+            spots=(0.88, 0.84, 0.50), spot_cell_m=0.021, spot_size=0.30, spot_density=0.85, spot_random=0.5,
+            spot_floor=-0.55, spot_aniso=(0.42, 1.5, 1.5), spot_fins=(),
             fin_blotch=(0.08, 0.08, 0.05), fin_blotch_cell_m=0.02,
             bars=0, scale_cell_m=0.006, scale_strength=0.10, scale_var=0.05,
             fins={"dorsal": (0.52, 0.46, 0.22), "caudal": (0.50, 0.44, 0.22), "anal": (0.56, 0.46, 0.24),
@@ -207,7 +208,7 @@ PRESETS = {
              (0.80, 0.044), (0.92, 0.026), (1.0, 0.020)],
         sec_exp=0.86, belly_taper=0.22, head_len=0.27, head_flat=0.0, head_wide=0.0,
         nose_t=0.018, mouth_t=0.06, mouth_notch=0.06, jaw_proj=0.0,
-        gill_inset=0.03, gill_bulge=0.022, eye_t=0.42, eye_z=0.35, eye_r=0.026,
+        gill_inset=0.045, gill_bulge=0.022, eye_t=0.42, eye_z=0.38, eye_r=0.018,
         rings=28, sides=18, subdiv=True, fin_th=0.005, barbels=True,
         fins=[
             dict(kind="dorsal", t0=0.38, t1=0.70, h=0.140, rake=0.20, outline=OUT_CARP_DORSAL, rays=16),
@@ -217,11 +218,11 @@ PRESETS = {
             dict(kind="pectoral", t0=0.27, base=0.045, len=0.115, dir=(-0.60, 0.70, -0.35), rays=9),
         ],
         pattern=dict(
-            back=(0.22, 0.17, 0.07), side=(0.66, 0.50, 0.20), belly=(0.92, 0.84, 0.58),
+            back=(0.24, 0.16, 0.05), side=(0.70, 0.50, 0.17), belly=(0.92, 0.82, 0.50),
             back_pos=0.82, side_pos=0.45, belly_pos=0.18,
             band=None, cheek=(0.70, 0.52, 0.22), cheek_strength=0.25,
             spots=None, spot_fins=(),
-            bars=0, scale_cell_m=0.018, scale_strength=0.38, scale_var=0.16,
+            bars=0, scale_cell_m=0.019, scale_strength=0.36, scale_var=0.16,
             fins={"dorsal": (0.40, 0.30, 0.14), "caudal": (0.62, 0.36, 0.14), "anal": (0.72, 0.38, 0.14),
                   "pelvic": (0.78, 0.42, 0.16), "pectoral": (0.74, 0.42, 0.18)},
             fin_tip=(0.5, 0.3, 0.12), fin_tip_strength=0.2, fin_edge_dark=0.35, fin_ray_dark=0.2,
@@ -240,7 +241,7 @@ PRESETS = {
              (0.80, 0.030), (0.92, 0.018), (1.0, 0.014)],
         sec_exp=0.95, belly_taper=0.15, head_len=0.26, head_flat=0.0, head_wide=0.0,
         nose_t=0.02, mouth_t=0.07, mouth_notch=0.04, jaw_proj=0.004,
-        gill_inset=0.03, gill_bulge=0.02, eye_t=0.42, eye_z=0.40, eye_r=0.036,
+        gill_inset=0.04, gill_bulge=0.02, eye_t=0.42, eye_z=0.42, eye_r=0.030,
         rings=26, sides=16, subdiv=True, fin_th=0.004, barbels=False,
         fins=[
             dict(kind="dorsal", t0=0.48, t1=0.58, h=0.095, rake=0.30, outline=OUT_SOFT, rays=8),
@@ -252,7 +253,7 @@ PRESETS = {
         pattern=dict(
             back=(0.20, 0.26, 0.16), side=(0.70, 0.72, 0.66), belly=(0.94, 0.94, 0.92),
             back_pos=0.80, side_pos=0.50, belly_pos=0.25,
-            band=(0.10, 0.11, 0.12), band_vz=0.0, band_w=0.14, band_strength=0.85, band_ux=(0.20, 0.97),
+            band=(0.07, 0.08, 0.09), band_vz=-0.02, band_w=0.17, band_strength=0.95, band_ux=(0.16, 0.98),
             cheek=(0.72, 0.72, 0.66), cheek_strength=0.3,
             spots=None, spot_fins=(),
             bars=0, scale_cell_m=0.0022, scale_strength=0.08, scale_var=0.05,
@@ -362,7 +363,7 @@ def surface_point(P, t, phi):
 # ----------------------------------------------------------------------------------------------
 # ATTRIBUTE LAYERS (point domain floats read by the Cycles Attribute node)
 # ----------------------------------------------------------------------------------------------
-ATTRS = ["ux", "vz", "region", "fid", "fr", "fs", "eyea"]
+ATTRS = ["ux", "vz", "region", "fid", "fr", "fs", "ray", "eyea"]
 
 
 def attr_layers(bm):
@@ -381,7 +382,7 @@ def ring_stations(P):
     """Sorted t values of the body rings: uniform-ish (denser at the head) plus anatomical rings."""
     n = P["rings"]
     gill_t = P["head_len"]
-    stations = [P["nose_t"], P["mouth_t"], gill_t, gill_t + 0.016, 1.0]
+    stations = [P["nose_t"], P["mouth_t"], gill_t - 0.012, gill_t, gill_t + 0.014, 1.0]
     fill = [(i / (n - 1)) ** 0.92 for i in range(1, n - 1)]
     fill = [t for t in fill if t > P["nose_t"] + 0.015]
     spacing = 1.0 / n
@@ -420,18 +421,18 @@ def build_body(P, lay, bm):
             if t < P["mouth_t"] * 1.6 and P["jaw_proj"] > 0:
                 x += P["jaw_proj"] * L * max(0.0, -c) ** 1.5 * (1.0 - t / (P["mouth_t"] * 1.6))
             # gill-plate seam bows backwards at mid-height (operculum edge)
-            if abs(t - gill_t) < 1e-9 or abs(t - (gill_t + 0.016)) < 1e-9:
+            if abs(t - gill_t) < 1e-9 or abs(t - (gill_t + 0.014)) < 1e-9 or abs(t - (gill_t - 0.012)) < 1e-9:
                 x -= P["gill_bulge"] * L * abs(s) ** 1.4
             v = bm.verts.new((x, y, z))
-            set_attrs(v, lay, ux=t * (1.0 - P["tail_len"]), vz=c, region=0, fid=0, fr=0, fs=0, eyea=1)
+            set_attrs(v, lay, ux=t * (1.0 - P["tail_len"]), vz=c, region=0, fid=0, fr=0, fs=0, ray=0, eyea=1)
             ring.append(v)
         rings.append(ring)
 
     nose = bm.verts.new((0.0, 0.0, 0.0))
-    set_attrs(nose, lay, ux=0, vz=0, region=0, fid=0, fr=0, fs=0, eyea=1)
+    set_attrs(nose, lay, ux=0, vz=0, region=0, fid=0, fr=0, fs=0, ray=0, eyea=1)
     zt, zb, _ = section(P, 1.0)
     tail = bm.verts.new((-Lb - 0.01 * L, 0.0, 0.5 * (zt + zb)))
-    set_attrs(tail, lay, ux=1.0 - P["tail_len"], vz=0, region=0, fid=0, fr=0, fs=0, eyea=1)
+    set_attrs(tail, lay, ux=1.0 - P["tail_len"], vz=0, region=0, fid=0, fr=0, fs=0, ray=0, eyea=1)
 
     faces = []
     for i in range(len(rings) - 1):
@@ -473,7 +474,7 @@ def build_body(P, lay, bm):
 # ----------------------------------------------------------------------------------------------
 # FINS (thin slabs built from a base curve and an outline; UV = (s, r))
 # ----------------------------------------------------------------------------------------------
-def fin_grid(bm, lay, grid, normal, th, fid, uv_rect, uvs):
+def fin_grid(bm, lay, grid, normal, th, fid, uv_rect, uvs, rays=0):
     """grid: rows x cols of Vectors (row 0 = base). Makes a two-sided slab with a rim.
     Writes (s, r) UVs mapped into uv_rect for every face loop. Returns faces."""
     rows, cols = len(grid), len(grid[0])
@@ -488,7 +489,7 @@ def fin_grid(bm, lay, grid, normal, th, fid, uv_rect, uvs):
             vt = bm.verts.new(p + n)
             vb = bm.verts.new(p - n)
             for v in (vt, vb):
-                set_attrs(v, lay, ux=0, vz=0, region=1, fid=fid, fr=r, fs=s, eyea=1)
+                set_attrs(v, lay, ux=0, vz=0, region=1, fid=fid, fr=r, fs=s, ray=s * rays, eyea=1)
             trow.append(vt)
             brow.append(vb)
         top.append(trow)
@@ -499,14 +500,17 @@ def fin_grid(bm, lay, grid, normal, th, fid, uv_rect, uvs):
     def uv(ci, ri):
         return (u0 + (u1 - u0) * ci / (cols - 1), v0 + (v1 - v0) * ri / (rows - 1))
 
+    def quad(verts, coords):
+        f = bm.faces.new(verts)
+        uvs[f] = {v: c for v, c in zip(verts, coords)}
+        return f
+
     for ri in range(rows - 1):
         for ci in range(cols - 1):
-            f = bm.faces.new((top[ri][ci], top[ri][ci + 1], top[ri + 1][ci + 1], top[ri + 1][ci]))
-            uvs[f] = [uv(ci, ri), uv(ci + 1, ri), uv(ci + 1, ri + 1), uv(ci, ri + 1)]
-            faces.append(f)
-            f = bm.faces.new((bot[ri][ci], bot[ri + 1][ci], bot[ri + 1][ci + 1], bot[ri][ci + 1]))
-            uvs[f] = [uv(ci, ri), uv(ci, ri + 1), uv(ci + 1, ri + 1), uv(ci + 1, ri)]
-            faces.append(f)
+            faces.append(quad((top[ri][ci], top[ri][ci + 1], top[ri + 1][ci + 1], top[ri + 1][ci]),
+                              (uv(ci, ri), uv(ci + 1, ri), uv(ci + 1, ri + 1), uv(ci, ri + 1))))
+            faces.append(quad((bot[ri][ci], bot[ri + 1][ci], bot[ri + 1][ci + 1], bot[ri][ci + 1]),
+                              (uv(ci, ri), uv(ci, ri + 1), uv(ci + 1, ri + 1), uv(ci + 1, ri))))
     # rim: outer edge (last row), front and rear columns (the base row is buried in the body)
     rim = []
     for ci in range(cols - 1):
@@ -515,13 +519,13 @@ def fin_grid(bm, lay, grid, normal, th, fid, uv_rect, uvs):
         rim.append(((ri, 0), (ri + 1, 0)))
         rim.append(((ri + 1, cols - 1), (ri, cols - 1)))
     for (ra, ca), (rb, cb) in rim:
-        f = bm.faces.new((top[ra][ca], bot[ra][ca], bot[rb][cb], top[rb][cb]))
-        uvs[f] = [uv(ca, ra), uv(ca, ra), uv(cb, rb), uv(cb, rb)]
-        faces.append(f)
+        faces.append(quad((top[ra][ca], bot[ra][ca], bot[rb][cb], top[rb][cb]),
+                          (uv(ca, ra), uv(ca, ra), uv(cb, rb), uv(cb, rb))))
+    topset = {v for row in top for v in row}
     for f in faces:
         for e in f.edges:
             a, b = e.verts
-            if (a in sum(top, [])) != (b in sum(top, [])):   # edges that cross the slab = rim edges
+            if (a in topset) != (b in topset):               # edges that cross the slab = rim edges
                 e.smooth = False
     bmesh.ops.recalc_face_normals(bm, faces=faces)
     return faces
@@ -564,14 +568,14 @@ def add_median_fin(bm, lay, P, fin, uv_rect, uvs):
             row.append(p)
         grid.append(row)
     return fin_grid(bm, lay, grid, lambda ri, ci: Vector((0.0, 1.0, 0.0)), P["fin_th"] * L, FIN_ID[kind],
-                    uv_rect, uvs)
+                    uv_rect, uvs, rays=fin.get("rays", 0))
 
 
 def add_caudal(bm, lay, P, fin, uv_rect, uvs):
     L = P["length_m"]
     Lb = body_len(P)
-    cols = fin.get("cols", 11)
-    rows = fin.get("rows", 4)
+    cols = fin.get("cols", 13)
+    rows = fin.get("rows", 5)
     Lt = P["tail_len"] * L
     span = fin["span"] * L
     fork = fin["fork"]
@@ -579,6 +583,16 @@ def add_caudal(bm, lay, P, fin, uv_rect, uvs):
     zt, zb, _ = section(P, 1.0)
     zc = 0.5 * (zt + zb)
     rays = fin.get("rays", 0)
+    xr = -Lb + 0.035 * L
+
+    def ray_len(v):
+        f = 1.0 - fork * (1.0 - abs(v) ** 1.5)
+        if abs(v) > 0.62:
+            q = (abs(v) - 0.62) / 0.38
+            f *= 1.0 - rnd * (1.0 - math.sqrt(max(0.0, 1.0 - q * q)))
+        return f
+
+    norm = max(ray_len(1.0 - 2.0 * k / 200.0) for k in range(201))
     grid = []
     for ri in range(rows):
         r = ri / (rows - 1)
@@ -586,18 +600,19 @@ def add_caudal(bm, lay, P, fin, uv_rect, uvs):
         for ci in range(cols):
             s = ci / (cols - 1)
             v = 1.0 - 2.0 * s                                  # +1 top lobe .. -1 bottom lobe
-            xr = -Lb + 0.035 * L
-            z0 = zc + v * 0.80 * (zt - zc if v >= 0 else zc - zb)
-            ln = Lt * (1.0 - fork * (1.0 - abs(v) ** 1.6))
-            ln *= 1.0 - rnd * max(0.0, abs(v) - 0.65) ** 2 / 0.1225
+            z0 = zc + v * 0.85 * (zt - zc if v >= 0 else zc - zb)
+            ln = (Lt + 0.035 * L) * ray_len(v) / norm
             if rays:
-                ln *= 1.0 - 0.03 * (0.5 - 0.5 * math.cos(2.0 * math.pi * s * rays))
+                ln *= 1.0 - 0.025 * (0.5 - 0.5 * math.cos(2.0 * math.pi * s * rays))
             spread = v * (0.5 * span) - (z0 - zc)
-            p = Vector((xr - ln * r - 0.035 * L * r, 0.0, z0 + spread * r))
+            if abs(v) > 0.62:
+                q = (abs(v) - 0.62) / 0.38
+                spread *= 1.0 - 0.45 * rnd * (1.0 - math.sqrt(max(0.0, 1.0 - q * q)))
+            p = Vector((xr - ln * r, 0.0, z0 + spread * r * (0.35 + 0.65 * r)))
             row.append(p)
         grid.append(row)
     return fin_grid(bm, lay, grid, lambda ri, ci: Vector((0.0, 1.0, 0.0)), P["fin_th"] * L,
-                    FIN_ID["caudal"], uv_rect, uvs)
+                    FIN_ID["caudal"], uv_rect, uvs, rays=rays)
 
 
 def add_paddle(bm, lay, P, fin, side, uv_rect, uvs):
@@ -633,7 +648,8 @@ def add_paddle(bm, lay, P, fin, side, uv_rect, uvs):
         grid.append(row)
     along = (grid[0][-1] - grid[0][0]).normalized()
     n = along.cross(d).normalized()
-    return fin_grid(bm, lay, grid, lambda ri, ci: n, P["fin_th"] * L, FIN_ID[kind], uv_rect, uvs)
+    return fin_grid(bm, lay, grid, lambda ri, ci: n, P["fin_th"] * L, FIN_ID[kind], uv_rect, uvs,
+                    rays=fin.get("rays", 0))
 
 
 # ----------------------------------------------------------------------------------------------
@@ -658,14 +674,14 @@ def add_eye(bm, lay, P, side, uv_rect, uvs):
     for v in verts:
         d = (v.co - centre) / r
         ang = math.acos(max(-1.0, min(1.0, d.dot(out_axis))))
-        set_attrs(v, lay, ux=0, vz=0, region=2, fid=0, fr=0, fs=0, eyea=ang / math.pi * 2.0)
+        set_attrs(v, lay, ux=0, vz=0, region=2, fid=0, fr=0, fs=0, ray=0, eyea=ang / math.pi * 2.0)
         faces.update(v.link_faces)
     for f in faces:
-        lst = []
+        d_ = {}
         for v in f.verts:
             d = (v.co - centre) / r
-            lst.append((u0 + (u1 - u0) * (0.5 + 0.48 * d.x), v0 + (v1 - v0) * (0.5 + 0.48 * d.z)))
-        uvs[f] = lst
+            d_[v] = (u0 + (u1 - u0) * (0.5 + 0.48 * d.x), v0 + (v1 - v0) * (0.5 + 0.48 * d.z))
+        uvs[f] = d_
     return list(faces)
 
 
@@ -683,11 +699,16 @@ def add_barbels(bm, lay, P, uvs, uv_rect):
         res = bmesh.ops.create_cone(bm, cap_ends=True, cap_tris=True, segments=5, radius1=0.0035 * L,
                                     radius2=0.0006 * L, depth=0.05 * L, matrix=mtx)
         fs = set()
+        cen = base + d * 0.022 * L
         for v in res["verts"]:
-            set_attrs(v, lay, ux=0, vz=0, region=1, fid=FIN_ID["pectoral"], fr=0.3, fs=0.5, eyea=1)
+            set_attrs(v, lay, ux=0, vz=0, region=1, fid=FIN_ID["pectoral"], fr=0.3, fs=0.5, ray=0, eyea=1)
             fs.update(v.link_faces)
+        u0, v0, u1, v1 = uv_rect
         for f in fs:
-            uvs[f] = [((uv_rect[0] + uv_rect[2]) * 0.5, (uv_rect[1] + uv_rect[3]) * 0.5)] * len(f.verts)
+            uvs[f] = {}
+            for v in f.verts:
+                q = (v.co - cen) / (0.03 * L)
+                uvs[f][v] = (u0 + (u1 - u0) * (0.5 + 0.45 * q.x), v0 + (v1 - v0) * (0.5 + 0.45 * q.z))
         faces += list(fs)
     return faces
 
@@ -724,7 +745,11 @@ def fin_rects(fins):
     x = x0
     for name, w in pieces:
         ww = width * w / total
-        rects[name] = (x, y0, x + ww, y1)
+        if name.startswith("eye"):
+            side = min(ww, y1 - y0)
+            rects[name] = (x, y0, x + side, y0 + side)
+        else:
+            rects[name] = (x, y0, x + ww, y1)
         x += ww + gap
     return rects
 
@@ -923,7 +948,7 @@ def build_fish_material(name, P):
     nb = NB(tree)
     coord = nb.n("ShaderNodeTexCoord")
     obj_co = coord.outputs["Object"]
-    ux, vz, region, fid, fr, fs, eyea = (nb.attr(a) for a in ATTRS)
+    ux, vz, region, fid, fr, fs, ray, eyea = (nb.attr(a) for a in ATTRS)
     h = nb.math("MULTIPLY_ADD", vz, 0.5, 0.5)                      # 0 belly .. 1 back
 
     # ---- body: countershading
@@ -952,13 +977,13 @@ def build_fish_material(name, P):
         nzb = nb.noise(obj_co, 30.0 / L * 0.4, 2.0)
         phase = nb.math("MULTIPLY_ADD", ux, pat["bars"] * math.pi / (pat["bar_ux"][1] - pat["bar_ux"][0]),
                         -pat["bar_ux"][0] * pat["bars"] * math.pi / (pat["bar_ux"][1] - pat["bar_ux"][0]))
-        phase = nb.math("ADD", phase, nb.math("MULTIPLY_ADD", nzb, 0.9, -0.45))
+        phase = nb.math("ADD", phase, nb.math("MULTIPLY_ADD", nzb, 0.6, -0.30))
         bar = nb.math("SINE", phase)
         bar = nb.math("MULTIPLY", bar, bar)
         # wedge: thinner towards the belly
         thr = nb.math("MULTIPLY_ADD", h, -0.35, 1.0 - pat["bar_width"])
         bar = nb.smooth(0.0, 0.25, nb.math("SUBTRACT", bar, thr))
-        bar = nb.math("MULTIPLY", bar, nb.smooth(pat["bar_floor"], pat["bar_floor"] + 0.35, vz))
+        bar = nb.math("MULTIPLY", bar, nb.smooth(pat["bar_floor"], pat["bar_floor"] + 0.45, vz))
         bar = nb.math("MULTIPLY", bar, nb.math("MULTIPLY", nb.smooth(pat["bar_ux"][0] - 0.03, pat["bar_ux"][0] + 0.03, ux),
                                                  nb.smooth(pat["bar_ux"][1] + 0.03, pat["bar_ux"][1] - 0.03, ux)))
         bar = nb.math("MULTIPLY", bar, pat["bar_strength"])
@@ -967,10 +992,10 @@ def build_fish_material(name, P):
     spot_mask = None
     if pat.get("spots"):
         vec = nb.mapping(obj_co, scale=pat["spot_aniso"])
-        vor = nb.voronoi(vec, 1.0 / pat["spot_cell_m"])
+        vor = nb.voronoi(vec, 1.0 / pat["spot_cell_m"], randomness=pat.get("spot_random", 1.0))
         sep = nb.n("ShaderNodeSeparateColor")
         nb.put(sep.inputs[0], vor.outputs["Color"])
-        pick = nb.smooth(1.0 - pat["spot_density"] + 0.02, 1.0 - pat["spot_density"] - 0.02, sep.outputs[0])
+        pick = nb.smooth(pat["spot_density"] + 0.02, pat["spot_density"] - 0.02, sep.outputs[0])   # cell R < density
         edge = nb.smooth(pat["spot_size"] + 0.05, pat["spot_size"] - 0.02, vor.outputs["Distance"])
         spot_mask = nb.math("MULTIPLY", pick, edge)
         back_m = nb.smooth(pat["spot_floor"], pat["spot_floor"] + 0.35, vz)
@@ -978,25 +1003,30 @@ def build_fish_material(name, P):
         body_spots = nb.math("MULTIPLY", body_spots, nb.smooth(0.05, 0.12, ux))
         body = nb.mix(body_spots, body, pat["spots"])
     # scales: distance-to-edge darkening + per-cell brightness variation
-    svec = nb.mapping(obj_co, scale=(1.0, 1.35, 1.0))
-    sv = nb.voronoi(svec, 1.0 / pat["scale_cell_m"], feature="DISTANCE_TO_EDGE", randomness=0.35)
-    sedge = nb.smooth(0.10, 0.0, sv.outputs["Distance"])
-    scv = nb.voronoi(svec, 1.0 / pat["scale_cell_m"], feature="F1", randomness=0.35)
+    svec = nb.n("ShaderNodeMapping")
+    nb.put(svec.inputs["Vector"], obj_co)
+    svec.inputs["Rotation"].default_value = (0.0, math.radians(45.0), 0.0)
+    svec.inputs["Scale"].default_value = (1.0, 1.6, 1.0)
+    svec = svec.outputs["Vector"]
+    sv = nb.voronoi(svec, 1.0 / pat["scale_cell_m"], feature="DISTANCE_TO_EDGE", randomness=0.2)
+    sedge = nb.smooth(0.07, 0.0, sv.outputs["Distance"])
+    scv = nb.voronoi(svec, 1.0 / pat["scale_cell_m"], feature="F1", randomness=0.2)
     scsep = nb.n("ShaderNodeSeparateColor")
     nb.put(scsep.inputs[0], scv.outputs["Color"])
     cellvar = nb.math("MULTIPLY_ADD", scsep.outputs[0], 2.0 * pat["scale_var"], 1.0 - pat["scale_var"])
-    shade = nb.math("MULTIPLY", cellvar, nb.math("MULTIPLY_ADD", sedge, -pat["scale_strength"], 1.0))
-    shade = nb.math("MULTIPLY", shade, nb.math("MULTIPLY_ADD", h, 0.0, 1.0))
+    cup = nb.smooth(0.15, 0.62, scv.outputs["Distance"])             # darker towards the scale rim
+    shade = nb.math("MULTIPLY", cellvar, nb.math("MULTIPLY_ADD", sedge, -0.6 * pat["scale_strength"], 1.0))
+    shade = nb.math("MULTIPLY", shade, nb.math("MULTIPLY_ADD", cup, -1.0 * pat["scale_strength"], 1.0))
     # no scales on the head
     shade = nb.mix(nb.smooth(head_end + 0.03, head_end - 0.02, ux), shade_to_col(nb, shade), (1, 1, 1))
     body = nb.mul(body, shade)
     # mouth line and gill line (painted)
-    mouth = nb.math("MULTIPLY", nb.gauss(vz, pat["mouth_vz"], 0.07),
+    mouth = nb.math("MULTIPLY", nb.gauss(vz, pat["mouth_vz"], 0.10),
                     nb.smooth(pat["mouth_len"] * head_end, pat["mouth_len"] * head_end - 0.03, ux))
-    mouth = nb.math("MULTIPLY", mouth, 0.65)
+    mouth = nb.math("MULTIPLY", mouth, 0.8)
     body = nb.mix(mouth, body, (0.06, 0.04, 0.03))
     gill_x = nb.math("MULTIPLY_ADD", nb.math("MULTIPLY", vz, vz), -P["gill_bulge"] * 0.9, head_end + P["gill_bulge"] * 0.9)
-    gill = nb.gauss(ux, gill_x, 0.006)
+    gill = nb.gauss(ux, gill_x, 0.0075)
     gill = nb.math("MULTIPLY", gill, nb.smooth(-0.85, -0.5, vz))
     gill = nb.math("MULTIPLY", gill, pat["gill_dark"])
     body = nb.mix(gill, body, (0.05, 0.05, 0.04))
@@ -1011,9 +1041,10 @@ def build_fish_material(name, P):
         col = pat["fins"].get(k, pat["fins"].get("dorsal", (0.5, 0.5, 0.5)))
         stops.append((i / len(FIN_KINDS), col))
     fin = nb.ramp(nb.math("DIVIDE", fid, float(len(FIN_KINDS))), stops, interp="CONSTANT")
-    rayv = nb.math("SINE", nb.math("MULTIPLY", fs, 2.0 * math.pi * 9.0))
+    rayv = nb.math("SINE", nb.math("MULTIPLY", ray, math.pi))
     rayv = nb.math("MULTIPLY", rayv, rayv)
-    rayv = nb.math("MULTIPLY", nb.smooth(0.55, 0.95, rayv), pat["fin_ray_dark"])
+    rayv = nb.math("MULTIPLY", nb.smooth(0.45, 0.95, rayv), pat["fin_ray_dark"])
+    rayv = nb.math("MULTIPLY", rayv, nb.smooth(0.08, 0.3, fr))
     fin = nb.mix(rayv, fin, (0.08, 0.08, 0.06))
     tip = nb.math("MULTIPLY", nb.smooth(0.55, 0.95, fr), pat["fin_tip_strength"])
     fin = nb.mix(tip, fin, pat["fin_tip"])
@@ -1033,8 +1064,8 @@ def build_fish_material(name, P):
         fin = nb.mix(nb.math("MULTIPLY", bl, 0.8), fin, pat["fin_blotch"])
     if pat.get("dorsal_spot"):
         ds = nb.math("MULTIPLY", nb.gauss(fid, float(FIN_ID["dorsal"]), 0.3),
-                     nb.math("MULTIPLY", nb.smooth(0.70, 0.86, fs), nb.smooth(0.15, 0.4, fr)))
-        fin = nb.mix(nb.math("MULTIPLY", ds, 0.85), fin, (0.05, 0.05, 0.04))
+                     nb.math("MULTIPLY", nb.smooth(0.62, 0.80, fs), nb.smooth(0.12, 0.35, fr)))
+        fin = nb.mix(nb.math("MULTIPLY", ds, 0.9), fin, (0.04, 0.04, 0.03))
 
     # ---- eye: pupil, iris, dark rim
     eye = nb.ramp(eyea, [(0.0, pat["pupil"]), (0.30, pat["pupil"]), (0.36, pat["iris"]),
@@ -1179,9 +1210,9 @@ def build_fish(name, P, textures_dir):
     if P.get("barbels"):
         add_barbels(bm2, lay2, P, uvs, rects["barbel"])
     uv_lay = bm2.loops.layers.uv.new("UVMap")
-    for f, lst in uvs.items():
-        for loop, uvc in zip(f.loops, lst):
-            loop[uv_lay].uv = uvc
+    for f, byvert in uvs.items():
+        for loop in f.loops:
+            loop[uv_lay].uv = byvert[loop.vert]
     me2 = bpy.data.meshes.new(f"fish_{name}_fins")
     bm2.to_mesh(me2)
     bm2.free()
@@ -1301,9 +1332,12 @@ def bounds(objs):
     return lo, hi
 
 
-def studio(scene, objs, view_dir, samples, ortho_scale=None, ground=True, up=None, lens=65.0):
+def studio(scene, objs, view_dir, samples, ortho_scale=None, ground=True, up=None, lens=65.0, frame=None):
     """3-point rig (key sun, fill area, rim), soft ground, blue-grey world, camera framing."""
     lo, hi = bounds(objs)
+    glo = lo
+    if frame is not None:
+        lo, hi = Vector(frame[0]), Vector(frame[1])
     centre = 0.5 * (lo + hi)
     radius = 0.5 * (hi - lo).length
     world = bpy.data.worlds.new("Studio")
@@ -1315,8 +1349,8 @@ def studio(scene, objs, view_dir, samples, ortho_scale=None, ground=True, up=Non
     if ground:
         gm = bpy.data.meshes.new("Ground")
         gb = bmesh.new()
-        s = 12.0 * radius
-        zg = lo.z - 0.04 * radius
+        s = 12.0 * radius + 20.0
+        zg = glo.z - 0.04 * radius
         gb.faces.new([gb.verts.new(v) for v in ((-s, -s, zg), (s, -s, zg), (s, s, zg), (-s, s, zg))])
         gb.to_mesh(gm)
         gb.free()
@@ -1345,8 +1379,8 @@ def studio(scene, objs, view_dir, samples, ortho_scale=None, ground=True, up=Non
         lo_.rotation_euler = (-d).to_track_quat("-Z", "Y").to_euler()
 
     light("Key", "SUN", (0.5, -0.7, 1.0), 4.5, (1.0, 0.97, 0.92))
-    light("Fill", "AREA", (-0.4, -1.0, 0.5), 900.0 * radius * radius, (0.85, 0.92, 1.0), size=6.0 * radius)
-    light("Rim", "AREA", (-0.8, 0.9, 0.7), 700.0 * radius * radius, (1.0, 0.95, 0.9), size=4.0 * radius)
+    light("Fill", "AREA", (-0.4, -1.0, 0.5), 130.0 * radius * radius, (0.85, 0.92, 1.0), size=6.0 * radius)
+    light("Rim", "AREA", (-0.8, 0.9, 0.7), 180.0 * radius * radius, (1.0, 0.95, 0.9), size=4.0 * radius)
 
     cam_d = bpy.data.cameras.new("Cam")
     cam_d.lens = lens
@@ -1379,8 +1413,12 @@ def studio(scene, objs, view_dir, samples, ortho_scale=None, ground=True, up=Non
     scene.render.resolution_percentage = 100
     scene.render.image_settings.file_format = "PNG"
     scene.render.film_transparent = False
-    scene.view_settings.view_transform = "Standard"
-    scene.view_settings.look = "None"
+    try:
+        scene.view_settings.view_transform = "AgX"
+        scene.view_settings.look = "AgX - Punchy"
+    except TypeError:
+        scene.view_settings.view_transform = "Standard"
+        scene.view_settings.look = "None"
     scene.view_settings.exposure = 0.0
 
 
@@ -1469,14 +1507,425 @@ def generate_fish(name, P, exports, previews, views, do_fbx, do_render, final):
 
 
 # ----------------------------------------------------------------------------------------------
-# PROPS (filled in below)
+# PROPS: rod and reel, dock, trader stall (one baked material each, region attribute -> colour)
 # ----------------------------------------------------------------------------------------------
+PROP_REGIONS = ["wood", "metal", "canvas", "cork", "graphite", "dark", "crate", "rope", "piling", "sign"]
+PR = {k: float(i) for i, k in enumerate(PROP_REGIONS)}
+
+
+class PropBuilder:
+    """bmesh helpers that tag every vertex with a region id and keep cylinder sides smooth."""
+
+    def __init__(self):
+        self.bm = bmesh.new()
+        self.lay = self.bm.verts.layers.float.new("region")
+        self.vz = self.bm.verts.layers.float.new("vz")     # unused by props, keeps the attr set uniform
+
+    def _tag(self, verts, region):
+        faces = set()
+        for v in verts:
+            v[self.lay] = PR[region]
+            faces.update(v.link_faces)
+        return faces
+
+    def box(self, centre, size, region, rot=None):
+        mtx = Matrix.Translation(Vector(centre))
+        if rot is not None:
+            mtx = mtx @ rot
+        mtx = mtx @ Matrix.Diagonal((size[0], size[1], size[2], 1.0))
+        res = bmesh.ops.create_cube(self.bm, size=1.0, matrix=mtx)
+        faces = self._tag(res["verts"], region)
+        for f in faces:
+            f.smooth = False
+        return faces
+
+    def cyl(self, p0, p1, r0, r1=None, region="metal", segs=12, caps=True):
+        p0, p1 = Vector(p0), Vector(p1)
+        d = p1 - p0
+        length = d.length
+        mtx = Matrix.Translation(0.5 * (p0 + p1)) @ d.normalized().to_track_quat("Z", "Y").to_matrix().to_4x4()
+        res = bmesh.ops.create_cone(self.bm, cap_ends=caps, cap_tris=False, segments=segs, radius1=r0,
+                                    radius2=r0 if r1 is None else r1, depth=length, matrix=mtx)
+        faces = self._tag(res["verts"], region)
+        for f in faces:
+            f.smooth = len(f.verts) == 4            # sides smooth, caps flat
+        return faces
+
+    def torus(self, centre, axis, R, r, region="metal", segs=10, rings=6, arc=2.0 * math.pi, closed=True):
+        centre = Vector(centre)
+        rot = Vector(axis).normalized().to_track_quat("Z", "Y").to_matrix()
+        grid = []
+        n = segs if closed else segs + 1
+        for i in range(n):
+            a = arc * i / segs
+            ring = []
+            for j in range(rings):
+                b = 2.0 * math.pi * j / rings
+                p = Vector(((R + r * math.cos(b)) * math.cos(a), (R + r * math.cos(b)) * math.sin(a), r * math.sin(b)))
+                v = self.bm.verts.new(centre + rot @ p)
+                v[self.lay] = PR[region]
+                ring.append(v)
+            grid.append(ring)
+        faces = []
+        m = segs if closed else segs
+        for i in range(m):
+            a, b = grid[i], grid[(i + 1) % n]
+            for j in range(rings):
+                f = self.bm.faces.new((a[j], a[(j + 1) % rings], b[(j + 1) % rings], b[j]))
+                f.smooth = True
+                faces.append(f)
+        return faces
+
+    def loft(self, stations, region_fn, segs=10):
+        """stations: list of (x, radius, region) along +X; duplicate x with different radius = hard step."""
+        rings = []
+        for x, r, region in stations:
+            ring = []
+            for j in range(segs):
+                a = 2.0 * math.pi * j / segs
+                v = self.bm.verts.new((x, r * math.cos(a), r * math.sin(a)))
+                v[self.lay] = PR[region]
+                ring.append(v)
+            rings.append(ring)
+        faces = []
+        for i in range(len(rings) - 1):
+            a, b = rings[i], rings[i + 1]
+            for j in range(segs):
+                f = self.bm.faces.new((a[j], b[j], b[(j + 1) % segs], a[(j + 1) % segs]))
+                f.smooth = stations[i][0] != stations[i + 1][0]
+                faces.append(f)
+        for ring, flip in ((rings[0], False), (rings[-1], True)):
+            f = self.bm.faces.new(ring if flip else list(reversed(ring)))
+            f.smooth = False
+            faces.append(f)
+        return faces
+
+    def finish(self, name):
+        bm = self.bm
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+        for e in bm.edges:
+            if any(not f.smooth for f in e.link_faces):
+                e.smooth = False
+        me = bpy.data.meshes.new(name)
+        bm.to_mesh(me)
+        bm.free()
+        me.update()
+        obj = bpy.data.objects.new(name, me)
+        bpy.context.scene.collection.objects.link(obj)
+        return obj
+
+
+def build_rod(name):
+    b = PropBuilder()
+    Lr = 2.1
+    # shaft: butt cap, rear cork grip, reel seat, fore grip, tapered blank
+    st = [(0.0, 0.012, "dark"), (0.02, 0.012, "dark"), (0.02, 0.013, "cork"), (0.26, 0.013, "cork"),
+          (0.26, 0.011, "graphite"), (0.30, 0.011, "graphite"), (0.30, 0.0125, "metal"), (0.32, 0.0125, "metal"),
+          (0.32, 0.011, "graphite"), (0.44, 0.011, "graphite"), (0.44, 0.0125, "metal"), (0.46, 0.0125, "metal"),
+          (0.46, 0.012, "cork"), (0.58, 0.012, "cork"), (0.58, 0.0075, "graphite"), (0.80, 0.0062, "graphite"),
+          (1.05, 0.0050, "graphite"), (1.30, 0.0040, "graphite"), (1.55, 0.0031, "graphite"),
+          (1.80, 0.0023, "graphite"), (2.0, 0.0018, "graphite"), (Lr, 0.0015, "graphite")]
+    b.loft(st, None, segs=10)
+
+    def blank_r(x):
+        for (x0, r0, _), (x1, r1, _) in zip(st, st[1:]):
+            if x0 <= x <= x1 and x1 > x0:
+                return r0 + (r1 - r0) * (x - x0) / (x1 - x0)
+        return 0.0015
+
+    # 6 line guides (tori hanging under the blank) with feet, plus the tip top
+    guides = [(0.72, 0.020), (0.98, 0.015), (1.24, 0.011), (1.50, 0.008), (1.74, 0.0065), (1.94, 0.0055)]
+    for x, R in guides:
+        rb = blank_r(x)
+        zc = -(rb + 0.004 + R)
+        b.torus((x, 0.0, zc), (1.0, 0.0, 0.0), R, 0.0011, "metal", segs=10, rings=5)
+        b.box((x, 0.0, -(rb + 0.002)), (0.03, 0.004, 0.004), "dark")                 # foot wrap
+        b.cyl((x, 0.0, -(rb + 0.002)), (x, 0.0, zc + R), 0.0012, None, "metal", segs=6)   # frame leg
+    rb = blank_r(Lr)
+    b.torus((Lr, 0.0, -(rb + 0.0045)), (1.0, 0.0, 0.0), 0.0045, 0.0009, "metal", segs=10, rings=5)
+    b.cyl((Lr - 0.012, 0.0, 0.0), (Lr - 0.012, 0.0, -(rb + 0.002)), 0.0012, None, "metal", segs=6)
+
+    # spinning reel on the seat (x 0.32..0.44): foot, stem, body, rotor/spool, bail, handle
+    xr = 0.38
+    b.box((xr, 0.0, -0.013), (0.075, 0.012, 0.004), "dark")                           # reel foot
+    b.cyl((xr, 0.0, -0.015), (xr, 0.0, -0.055), 0.006, 0.009, "dark", segs=8)         # stem
+    b.cyl((xr - 0.018, 0.0, -0.072), (xr + 0.022, 0.0, -0.072), 0.023, None, "dark", segs=14)  # gear body
+    b.cyl((xr + 0.022, 0.0, -0.072), (xr + 0.036, 0.0, -0.072), 0.020, None, "graphite", segs=14)  # rotor
+    b.cyl((xr + 0.036, 0.0, -0.072), (xr + 0.070, 0.0, -0.072), 0.018, None, "metal", segs=14)  # spool
+    b.cyl((xr + 0.040, 0.0, -0.072), (xr + 0.066, 0.0, -0.072), 0.0185, None, "rope", segs=14)  # line on spool
+    b.cyl((xr + 0.070, 0.0, -0.072), (xr + 0.076, 0.0, -0.072), 0.012, None, "dark", segs=10)  # spool cap
+    # bail arm: half torus around the spool
+    b.torus((xr + 0.050, 0.0, -0.072), (1.0, 0.0, 0.0), 0.026, 0.0015, "metal", segs=9, rings=5,
+            arc=math.pi, closed=False)
+    b.cyl((xr + 0.036, 0.026, -0.072), (xr + 0.050, 0.026, -0.072), 0.003, None, "dark", segs=6)  # bail pivots
+    b.cyl((xr + 0.036, -0.026, -0.072), (xr + 0.050, -0.026, -0.072), 0.003, None, "dark", segs=6)
+    # handle: shaft out of the body side (+Y), crank arm, knob
+    b.cyl((xr, 0.023, -0.072), (xr, 0.040, -0.072), 0.004, None, "metal", segs=8)
+    b.box((xr, 0.042, -0.055), (0.008, 0.004, 0.040), "dark")
+    b.cyl((xr, 0.040, -0.038), (xr, 0.062, -0.038), 0.0035, None, "metal", segs=6)
+    b.cyl((xr, 0.052, -0.038), (xr, 0.072, -0.038), 0.008, 0.007, "cork", segs=10)
+    obj = b.finish(name)
+    return obj
+
+
+def build_dock(name):
+    b = PropBuilder()
+    Ld, Wd = 6.0, 2.0
+    deck_top = 0.75
+    plank_w, gap, plank_t = 0.14, 0.02, 0.05
+    # pilings: 2.2 m tall, 1.5 m under water (water = z 0), tops at 0.70 under the planks
+    px = [0.45, 3.0, 5.55]
+    for x in px:
+        for y in (-0.85, 0.85):
+            b.cyl((x, y, -1.5), (x, y, 0.70), 0.15, None, "piling", segs=12)
+        b.box((x, 0.0, 0.46), (0.16, Wd - 0.10, 0.16), "wood")                 # cross bearer bolted to the pilings
+    for y in (-0.66, 0.66):
+        b.box((Ld * 0.5, y, 0.62), (Ld, 0.12, 0.16), "wood")                   # stringers under the planks
+    n = int((Ld + gap) // (plank_w + gap))
+    x = 0.0
+    for i in range(n):
+        b.box((x + plank_w * 0.5, 0.0, deck_top - plank_t * 0.5), (plank_w, Wd, plank_t), "wood")
+        x += plank_w + gap
+    # mooring cleat near the far end, starboard side
+    cx, cy = 5.3, 0.75
+    b.box((cx, cy, deck_top + 0.01), (0.22, 0.09, 0.02), "metal")
+    b.cyl((cx - 0.05, cy, deck_top + 0.02), (cx - 0.05, cy, deck_top + 0.075), 0.016, None, "metal", segs=8)
+    b.cyl((cx + 0.05, cy, deck_top + 0.02), (cx + 0.05, cy, deck_top + 0.075), 0.016, None, "metal", segs=8)
+    b.cyl((cx - 0.16, cy, deck_top + 0.075), (cx + 0.16, cy, deck_top + 0.075), 0.02, None, "metal", segs=8)
+    # ladder on the port side (-Y) at x = 4.0, from under water to above the deck
+    lx = 4.0
+    for dx in (-0.22, 0.22):
+        b.cyl((lx + dx, -1.06, -0.9), (lx + dx, -1.06, 1.05), 0.022, None, "metal", segs=8)
+        b.box((lx + dx, -0.93, deck_top - 0.10), (0.06, 0.26, 0.06), "metal")     # bracket to the stringer
+        b.box((lx + dx, -0.93, 0.05), (0.06, 0.26, 0.06), "metal")
+    for z in (-0.65, -0.30, 0.05, 0.40, 0.75):
+        b.cyl((lx - 0.22, -1.06, z), (lx + 0.22, -1.06, z), 0.016, None, "metal", segs=8)
+    return b.finish(name)
+
+
+def build_stall(name):
+    b = PropBuilder()
+    # counter 2 x 0.9 x 1 (y x x x z), origin at the floor under the centre of the front edge (+X = customer side)
+    b.box((-0.45, 0.0, 0.50), (0.90, 2.0, 1.0), "wood")
+    b.box((-0.45, 0.0, 1.025), (1.0, 2.1, 0.05), "wood")                          # counter top overhang
+    for i in range(9):                                                            # front plank grooves
+        b.box((0.006, -0.95 + i * 0.2375 + 0.1, 0.50), (0.012, 0.012, 0.96), "dark")
+    for y in (-1.05, 1.05):                                                       # 4 posts
+        for x in (0.15, -1.05):
+            b.box((x, y, 1.10), (0.08, 0.08, 2.20), "wood")
+    # canopy: sloped slab, beam at the front, scalloped valance
+    rot = Matrix.Rotation(math.radians(-8.0), 4, "Y")
+    b.box((-0.45, 0.0, 2.24), (1.60, 2.40, 0.04), "canvas", rot=rot)
+    b.box((0.28, 0.0, 2.10), (0.06, 2.30, 0.06), "wood")
+    for i in range(12):
+        y = -1.1 + 0.2 * i
+        b.cyl((0.315, y, 2.09), (0.325, y, 2.09), 0.1, None, "canvas", segs=10, caps=True)  # scallop discs
+    # hanging sign board (no text) under the front beam
+    for y in (-0.33, 0.33):
+        b.cyl((0.28, y, 2.07), (0.28, y, 1.84), 0.006, None, "rope", segs=6)
+    b.box((0.28, 0.0, 1.70), (0.03, 0.85, 0.30), "sign")
+    b.box((0.30, 0.0, 1.70), (0.004, 0.80, 0.25), "wood")
+    # platform scale on the counter: base, pan, dial post, dial
+    sx, sy = -0.55, 0.55
+    b.box((sx, sy, 1.08), (0.36, 0.30, 0.06), "metal")
+    b.cyl((sx + 0.04, sy, 1.11), (sx + 0.04, sy, 1.125), 0.14, None, "metal", segs=16)
+    b.cyl((sx - 0.14, sy, 1.11), (sx - 0.14, sy, 1.42), 0.015, None, "metal", segs=8)
+    b.cyl((sx - 0.14 - 0.015, sy, 1.45), (sx - 0.14 + 0.015, sy, 1.45), 0.11, None, "metal", segs=18)
+    b.cyl((sx - 0.14 + 0.015, sy, 1.45), (sx - 0.14 + 0.02, sy, 1.45), 0.09, None, "sign", segs=18)
+    # two fish crates: one on the counter, one on the floor at the side
+    def crate(cx, cy, cz, L=0.50, W=0.36, H=0.26):
+        b.box((cx, cy, cz + 0.01), (L, W, 0.02), "crate")
+        for dx, dy, sx_, sy_ in ((0, W * 0.5 - 0.01, L, 0.02), (0, -W * 0.5 + 0.01, L, 0.02)):
+            for k in range(3):
+                b.box((cx + dx, cy + dy, cz + 0.05 + k * 0.08), (sx_, sy_, 0.055), "crate")
+        for dy in (W * 0.5 - 0.01, -W * 0.5 + 0.01):
+            for dx in (L * 0.5 - 0.02, -L * 0.5 + 0.02):
+                b.box((cx + dx, cy + dy, cz + H * 0.5), (0.03, 0.03, H), "crate")
+        for dx in (L * 0.5 - 0.01, -L * 0.5 + 0.01):
+            b.box((cx + dx, cy, cz + H * 0.5), (0.02, W - 0.06, H - 0.02), "crate")
+    crate(-0.45, -0.55, 1.05)
+    crate(0.45, -1.35, 0.0)
+    return b.finish(name)
+
+
+def build_prop_material(name, P):
+    """Region -> colour with procedural wood grain, canvas stripes, wet pilings. Same bake path as fish."""
+    mat = bpy.data.materials.new(f"Prop_{name}")
+    mat.use_nodes = True
+    tree = mat.node_tree
+    for nd in list(tree.nodes):
+        tree.nodes.remove(nd)
+    nb = NB(tree)
+    coord = nb.n("ShaderNodeTexCoord")
+    obj_co = coord.outputs["Object"]
+    region = nb.attr("region")
+    sep = nb.n("ShaderNodeSeparateXYZ")
+    nb.put(sep.inputs[0], obj_co)
+    # wood grain: stretched noise along the long axis, banded
+    wave = nb.n("ShaderNodeTexWave", wave_type="BANDS", bands_direction="Y")
+    nb.put(wave.inputs["Vector"], nb.mapping(obj_co, scale=(1.0, 0.08, 1.0)))
+    wave.inputs["Scale"].default_value = 18.0
+    wave.inputs["Distortion"].default_value = 4.0
+    wave.inputs["Detail"].default_value = 2.0
+    grain = wave.outputs["Fac"]
+    fine = nb.noise(nb.mapping(obj_co, scale=(1.0, 0.15, 1.0)), 40.0, 3.0)
+    g = nb.math("MULTIPLY_ADD", grain, 0.35, 0.72)
+    g = nb.math("MULTIPLY", g, nb.math("MULTIPLY_ADD", fine, 0.25, 0.88))
+    wood = nb.ramp(g, [(0.0, (0.26, 0.17, 0.09)), (1.0, (0.60, 0.45, 0.26))])
+    crate = nb.ramp(g, [(0.0, (0.52, 0.40, 0.22)), (1.0, (0.82, 0.68, 0.42))])
+    sign = nb.ramp(g, [(0.0, (0.62, 0.50, 0.30)), (1.0, (0.86, 0.76, 0.52))])
+    cork = nb.mix(nb.smooth(0.45, 0.75, nb.noise(obj_co, 400.0, 2.0)), (0.72, 0.56, 0.36), (0.42, 0.28, 0.14))
+    # pilings: weathered grey above the water, dark green-brown wet band below
+    pil = nb.ramp(g, [(0.0, (0.30, 0.26, 0.20)), (1.0, (0.56, 0.50, 0.40))])
+    wet = nb.smooth(0.15, -0.25, sep.outputs["Z"])
+    pil = nb.mix(wet, pil, nb.mul(pil, (0.45, 0.55, 0.42)))
+    # canvas: red / cream stripes along Y
+    stripe = nb.smooth(-0.05, 0.05, nb.math("SINE", nb.math("MULTIPLY", sep.outputs["Y"], 2.0 * math.pi / 0.40)))
+    canvas = nb.mix(stripe, (0.90, 0.86, 0.76), (0.72, 0.16, 0.14))
+    stops = [("wood", wood), ("metal", (0.55, 0.56, 0.58)), ("canvas", canvas), ("cork", cork),
+             ("graphite", (0.09, 0.09, 0.10)), ("dark", (0.05, 0.05, 0.06)), ("crate", crate),
+             ("rope", (0.80, 0.76, 0.64)), ("piling", pil), ("sign", sign)]
+    col = None
+    for k, c in stops:
+        if col is None:
+            col = c if hasattr(c, "is_linked") else nb.mix(0.0, c, c)
+            continue
+        m = nb.smooth(PR[k] - 0.5, PR[k] - 0.4, region)
+        col = nb.mix(m, col, c)
+    bsdf = nb.n("ShaderNodeBsdfPrincipled")
+    nb.put(bsdf.inputs["Base Color"], col)
+    bsdf.inputs["Roughness"].default_value = 0.55
+    out = nb.n("ShaderNodeOutputMaterial")
+    nb.links.new(bsdf.outputs[0], out.inputs[0])
+    alpha = nb.math("ADD", 1.0, 0.0)
+    img_node = nb.n("ShaderNodeTexImage")
+    tree.nodes.active = img_node
+    return mat, img_node, alpha, col, bsdf, out
+
+
+def smart_uv(obj):
+    bpy.context.view_layer.objects.active = obj
+    for o in bpy.context.scene.objects:
+        o.select_set(o is obj)
+    if not obj.data.uv_layers:
+        obj.data.uv_layers.new(name="UVMap")
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.smart_project(angle_limit=math.radians(66.0), island_margin=0.004, correct_aspect=True,
+                             scale_to_bounds=False)
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+
+PROP_VIEWS = {"rod": {"34": Vector((0.35, -1.0, 0.45)), "side": Vector((0.0, -1.0, 0.08)),
+                      "reel": Vector((0.6, -1.0, 0.55))},
+              "dock": {"34": Vector((0.9, -1.0, 0.7)), "side": Vector((0.0, -1.0, 0.12))},
+              "stall": {"34": Vector((1.0, -0.8, 0.5)), "side": Vector((1.0, 0.0, 0.08))}}
+
+
 def generate_prop(name, P, exports, previews, views, do_fbx, do_render, final):
-    raise NotImplementedError("props not built yet")
+    scene = new_scene()
+    t0 = time.time()
+    builder = {"rod": build_rod, "dock": build_dock, "stall": build_stall}[P["kind"]]
+    obj = builder(name)
+    smart_uv(obj)
+    tris = tri_count(obj.data)
+    mat, img_node, alpha_sock, col_sock, bsdf, out_node = build_prop_material(name, P)
+    obj.data.materials.append(mat)
+    png = os.path.join(exports, f"{name}_diffuse.png")
+    bake_material(obj, mat, img_node, alpha_sock, col_sock, bsdf, out_node, png)
+    tex_mat = make_textured_material(f"Prop_{name}", png, roughness=0.55, alpha=False)
+    obj.data.materials.clear()
+    obj.data.materials.append(tex_mat)
+    bpy.data.materials.remove(mat)
+    dims = tuple(round(v, 4) for v in obj.dimensions)
+    log(f"{name}: {tris} tris, dims {dims}, built+baked in {time.time() - t0:.1f}s")
+    pngs = []
+    if do_render:
+        samples = RENDER["samples_final"] if final else RENDER["samples_preview"]
+        extra = ["reel"] if P["kind"] == "rod" else []
+        for vk in list(views) + extra:
+            vd = PROP_VIEWS[P["kind"]].get(vk) or VIEW_DIRS[vk]
+            clear_studio(scene, {obj})
+            frame = ((0.0, -0.08, -0.11), (0.62, 0.08, 0.03)) if vk == "reel" else None
+            studio(scene, [obj], vd, samples, ground=P["kind"] != "dock", lens=50.0, frame=frame)
+            png_ = os.path.join(previews, f"{name}_{vk}.png")
+            t1 = time.time()
+            render_to(scene, png_)
+            log(f"{name}: rendered {vk} in {time.time() - t1:.1f}s")
+            pngs.append(png_)
+        clear_studio(scene, {obj})
+    fbx = None
+    if do_fbx:
+        fbx = os.path.join(exports, f"{name}.fbx")
+        export_fbx(scene, [obj], fbx)
+    return dict(preset=name, kind=P["kind"], length_m=P["length_m"], triangles=tris, subdiv_applied=False,
+                dimensions_m=list(dims), textures=[png], fbx=fbx, fbx_rigged=None, bones=[], previews=pngs,
+                forward_axis="FBX +X", origin=ORIGINS[P["kind"]])
+
+
+ORIGINS = {"rod": "butt end, rod along +X, guides hang on -Z",
+           "dock": "shore end, centre line, deck top at z = 0.70, water at z = 0",
+           "stall": "floor under the centre of the counter front edge, customer side = +X"}
 
 
 def contact_sheet(exports, previews, names):
-    raise NotImplementedError("contact sheet not built yet")
+    """Re-imports the exported FBX files (a real check of what Roblox gets) and renders all fish
+    side-on with one orthographic camera, so sizes compare 1:1."""
+    scene = new_scene()
+    fish = []
+    for n in names:
+        path = os.path.join(exports, f"fish_{n}.fbx")
+        if not os.path.exists(path):
+            continue
+        before = set(scene.objects)
+        bpy.ops.import_scene.fbx(filepath=path)
+        new = [o for o in scene.objects if o not in before and o.type == "MESH"]
+        if not new:
+            continue
+        o = new[0]
+        o.name = f"sheet_{n}"
+        fish.append((n, o))
+    # layout: rows of (name, x offset); each fish's nose at x0, body along -X
+    rows = [[("pike",)], [("carp",), ("perch",)], [("trout",), ("minnow",)]]
+    placed = []
+    y = 0.0
+    row_h = 0.26
+    by_name = dict(fish)
+    labels = []
+    for row in rows:
+        x = 0.42
+        for (n,) in row:
+            if n not in by_name:
+                continue
+            o = by_name[n]
+            o.location = (x, 0.0, y)
+            placed.append(o)
+            L = PRESETS[n]["length_m"]
+            labels.append((f"{n}  {L:.2f} m", x - 0.5 * L, y - 0.095))
+            x -= L + 0.10
+        y -= row_h
+    for text, lx, lz in labels:
+        cu = bpy.data.curves.new("lbl", "FONT")
+        cu.body = text
+        cu.size = 0.030
+        cu.align_x = "CENTER"
+        tx = bpy.data.objects.new("lbl", cu)
+        tx.location = (lx, -0.02, lz)
+        tx.rotation_euler = (math.radians(90.0), 0.0, 0.0)
+        m = bpy.data.materials.new("LabelMat")
+        m.use_nodes = True
+        m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.05, 0.05, 0.06, 1.0)
+        cu.materials.append(m)
+        scene.collection.objects.link(tx)
+        placed.append(tx)
+    bpy.context.view_layer.update()
+    studio(scene, placed, Vector((0.0, -1.0, 0.0)), RENDER["samples_preview"], ortho_scale=1.0, ground=False,
+           up=Vector((0.0, 0.0, 1.0)))
+    scene.render.resolution_x = 1200
+    scene.render.resolution_y = 900
+    path = os.path.join(previews, "contact_sheet.png")
+    render_to(scene, path)
+    return path
 
 
 def main(argv=None):
@@ -1489,6 +1938,7 @@ def main(argv=None):
     ap.add_argument("--no-render", action="store_true")
     ap.add_argument("--final", action="store_true", help="128 samples instead of 64")
     ap.add_argument("--no-sheet", action="store_true", help="skip the contact sheet")
+    ap.add_argument("--sheet", action="store_true", help="also build the contact sheet from the exported fish")
     ap.add_argument("--list", action="store_true")
     args = ap.parse_args(argv)
     if args.list:
@@ -1527,7 +1977,7 @@ def main(argv=None):
             info = generate_prop(name, P, exports, previews, views, not args.no_fbx, not args.no_render, args.final)
         manifest[name] = info
         print(f"[v2] {name:14s} {info['triangles']:5d} tris  dims {info['dimensions_m']}  fbx={bool(info.get('fbx'))}")
-    if args.all and not args.no_sheet and not args.no_render:
+    if (args.sheet or args.all) and not args.no_sheet and not args.no_render:
         sheet = contact_sheet(exports, previews, [n for n in PRESETS if PRESETS[n]["kind"] == "fish"])
         log(f"contact sheet -> {sheet}")
     with open(man_path, "w", encoding="utf-8", newline="\n") as fh:

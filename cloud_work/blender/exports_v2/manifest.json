@@ -1,0 +1,208 @@
+[
+  {
+    "preset": "trout",
+    "kind": "fish",
+    "length_m": 0.4,
+    "triangles": 5852,
+    "subdiv_applied": true,
+    "dimensions_m": [
+      0.3972,
+      0.0832,
+      0.1201
+    ],
+    "rings": 30,
+    "sides": 18,
+    "textures": [
+      "/home/user/roblox/cloud_work/blender/exports_v2/fish_trout_diffuse.png"
+    ],
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v2/fish_trout.fbx",
+    "fbx_rigged": "/home/user/roblox/cloud_work/blender/exports_v2/fish_trout_rigged.fbx",
+    "bones": [
+      "head",
+      "body1",
+      "body2",
+      "body3",
+      "body4",
+      "peduncle",
+      "tail"
+    ],
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v2/fish_trout_34.png",
+      "/home/user/roblox/cloud_work/blender/previews_v2/fish_trout_side.png"
+    ],
+    "forward_axis": "FBX +X (Roblox RightVector)"
+  },
+  {
+    "preset": "perch",
+    "kind": "fish",
+    "length_m": 0.25,
+    "triangles": 5620,
+    "subdiv_applied": true,
+    "dimensions_m": [
+      0.2484,
+      0.0561,
+      0.1126
+    ],
+    "rings": 28,
+    "sides": 18,
+    "textures": [
+      "/home/user/roblox/cloud_work/blender/exports_v2/fish_perch_diffuse.png"
+    ],
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v2/fish_perch.fbx",
+    "fbx_rigged": null,
+    "bones": [],
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v2/fish_perch_34.png",
+      "/home/user/roblox/cloud_work/blender/previews_v2/fish_perch_side.png"
+    ],
+    "forward_axis": "FBX +X (Roblox RightVector)"
+  },
+  {
+    "preset": "pike",
+    "kind": "fish",
+    "length_m": 0.7,
+    "triangles": 5496,
+    "subdiv_applied": true,
+    "dimensions_m": [
+      0.6951,
+      0.1276,
+      0.1701
+    ],
+    "rings": 28,
+    "sides": 18,
+    "textures": [
+      "/home/user/roblox/cloud_work/blender/exports_v2/fish_pike_diffuse.png"
+    ],
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v2/fish_pike.fbx",
+    "fbx_rigged": null,
+    "bones": [],
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v2/fish_pike_34.png",
+      "/home/user/roblox/cloud_work/blender/previews_v2/fish_pike_side.png"
+    ],
+    "forward_axis": "FBX +X (Roblox RightVector)"
+  },
+  {
+    "preset": "carp",
+    "kind": "fish",
+    "length_m": 0.5,
+    "triangles": 5392,
+    "subdiv_applied": true,
+    "dimensions_m": [
+      0.4976,
+      0.1312,
+      0.2153
+    ],
+    "rings": 28,
+    "sides": 18,
+    "textures": [
+      "/home/user/roblox/cloud_work/blender/exports_v2/fish_carp_diffuse.png"
+    ],
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v2/fish_carp.fbx",
+    "fbx_rigged": null,
+    "bones": [],
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v2/fish_carp_34.png",
+      "/home/user/roblox/cloud_work/blender/previews_v2/fish_carp_side.png"
+    ],
+    "forward_axis": "FBX +X (Roblox RightVector)"
+  },
+  {
+    "preset": "minnow",
+    "kind": "fish",
+    "length_m": 0.08,
+    "triangles": 4880,
+    "subdiv_applied": true,
+    "dimensions_m": [
+      0.0797,
+      0.0157,
+      0.0232
+    ],
+    "rings": 26,
+    "sides": 16,
+    "textures": [
+      "/home/user/roblox/cloud_work/blender/exports_v2/fish_minnow_diffuse.png"
+    ],
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v2/fish_minnow.fbx",
+    "fbx_rigged": null,
+    "bones": [],
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v2/fish_minnow_34.png",
+      "/home/user/roblox/cloud_work/blender/previews_v2/fish_minnow_side.png"
+    ],
+    "forward_axis": "FBX +X (Roblox RightVector)"
+  },
+  {
+    "preset": "rod_and_reel",
+    "kind": "rod",
+    "length_m": 2.1,
+    "triangles": 1858,
+    "subdiv_applied": false,
+    "dimensions_m": [
+      2.1009,
+      0.1006,
+      0.1074
+    ],
+    "textures": [
+      "/home/user/roblox/cloud_work/blender/exports_v2/rod_and_reel_diffuse.png"
+    ],
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v2/rod_and_reel.fbx",
+    "fbx_rigged": null,
+    "bones": [],
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v2/rod_and_reel_34.png",
+      "/home/user/roblox/cloud_work/blender/previews_v2/rod_and_reel_side.png",
+      "/home/user/roblox/cloud_work/blender/previews_v2/rod_and_reel_reel.png"
+    ],
+    "forward_axis": "FBX +X",
+    "origin": "butt end, rod along +X, guides hang on -Z"
+  },
+  {
+    "preset": "dock",
+    "kind": "dock",
+    "length_m": 6.0,
+    "triangles": 1108,
+    "subdiv_applied": false,
+    "dimensions_m": [
+      6.0,
+      2.082,
+      2.55
+    ],
+    "textures": [
+      "/home/user/roblox/cloud_work/blender/exports_v2/dock_diffuse.png"
+    ],
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v2/dock.fbx",
+    "fbx_rigged": null,
+    "bones": [],
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v2/dock_34.png",
+      "/home/user/roblox/cloud_work/blender/previews_v2/dock_side.png"
+    ],
+    "forward_axis": "FBX +X",
+    "origin": "shore end, centre line, deck top at z = 0.70, water at z = 0"
+  },
+  {
+    "preset": "trader_stall",
+    "kind": "stall",
+    "length_m": 2.0,
+    "triangles": 1248,
+    "subdiv_applied": false,
+    "dimensions_m": [
+      1.945,
+      2.735,
+      2.3711
+    ],
+    "textures": [
+      "/home/user/roblox/cloud_work/blender/exports_v2/trader_stall_diffuse.png"
+    ],
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v2/trader_stall.fbx",
+    "fbx_rigged": null,
+    "bones": [],
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v2/trader_stall_34.png",
+      "/home/user/roblox/cloud_work/blender/previews_v2/trader_stall_side.png"
+    ],
+    "forward_axis": "FBX +X",
+    "origin": "floor under the centre of the counter front edge, customer side = +X"
+  }
+]

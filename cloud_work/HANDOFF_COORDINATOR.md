@@ -213,7 +213,31 @@ uses PlayStation button shapes that must be replaced.
 
 ## R2.6 Blender round 2 (item 33)
 
-Written when the asset agent reports; see `blender/README_v2.md`.
+Adrian's verdict on round 1 was "not even close to our realism references", so round 2 is a new
+generator, `blender/fish_realistic.py` (round 1 kept untouched). What changed: lofted bodies with
+separate dorsal, ventral and width profiles, a snout, a mouth notch with a longer lower jaw (trout,
+pike), a gill-plate crease, a sunk eye with pupil and iris, curved rayed fins embedded in the body,
+one Catmull-Clark level, smooth shading; and, the thing round 1 lacked entirely, a baked 1024x1024
+diffuse texture per species (countershading, lateral band, spots, perch bars, scale lattice, fin
+rays) embedded in the FBX so Studio can use it as `TextureID` or a `SurfaceAppearance`. Previews
+were rendered from the re-imported FBX files, so what the sheet shows is what Studio receives.
+
+| Asset | Triangles | Size (m) | Notes |
+|---|---|---|---|
+| `fish_trout.fbx` (+ `_rigged`, 7 bones) | 5,852 | 0.40 | rainbow trout: pink band, black spots; the rig maps to `TroutView.setBend` (bones 2..6 by k/5) |
+| `fish_perch.fbx` | 5,620 | 0.25 | 6 bars, orange fins, spiny first dorsal |
+| `fish_pike.fbx` | 5,496 | 0.70 | duckbill snout, pale bean spots, fins set back |
+| `fish_carp.fbx` | 5,392 | 0.50 | deep body, bronze scale lattice, barbels |
+| `fish_minnow.fbx` | 4,880 | 0.08 | dark lateral stripe |
+| `rod_and_reel.fbx` | 1,858 | 2.10 | cork handle, 6 guides, a stylised spinning reel |
+| `dock.fbx` | 1,108 | 6 x 2 | real 2 cm plank gaps and 6 pilings for the line-kink tests |
+| `trader_stall.fbx` | 1,248 | 2 x 1 | counter, canopy, scale, two crates, a blank sign |
+
+Still off, by the generator's own README: fins are flat slabs with painted rays, the carp's scales
+are a lattice rather than overlapping scales, the eye is one sphere, there is no normal or specular
+map, and the reel is a block model. These are F2 placeholders and props, not F1 art. Dev2's four
+checks (facing axis, metre-to-stud scale, texture kept on import, one MeshPart) stand; note the mesh
+import limit is now 20,000 triangles (constraints note), so the budgets have room.
 
 ## R2.7 Housekeeping
 

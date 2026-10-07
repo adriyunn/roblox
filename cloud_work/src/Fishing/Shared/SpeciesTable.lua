@@ -160,12 +160,16 @@ function SpeciesTable.ids(): { string }
 end
 
 -- A length in metres: bounded log-normal around the median (Box-Muller from two rng draws), clamped.
+-- The median is not the geometric centre of min..max, so each side gets its own sigma: min and max
+-- both sit SIGMAS/2 sigma from the median (one sigma for the whole span put trout's max 2.0 sigma out
+-- and clamped 2.2% of all trout to exactly 0.55 m).
 function SpeciesTable.rollLength(id: string, rng: Rng): number
 	local L = SpeciesTable.get(id).lengthM
-	local sigma = (math.log(L.max) - math.log(L.min)) / SpeciesTable.SIGMAS
+	local half = SpeciesTable.SIGMAS / 2
 	local u1 = math.max(rng:NextNumber(), 1e-12)
 	local u2 = rng:NextNumber()
 	local z = math.sqrt(-2 * math.log(u1)) * math.cos(2 * math.pi * u2)
+	local sigma = if z >= 0 then (math.log(L.max) - math.log(L.median)) / half else (math.log(L.median) - math.log(L.min)) / half
 	return math.clamp(L.median * math.exp(sigma * z), L.min, L.max)
 end
 

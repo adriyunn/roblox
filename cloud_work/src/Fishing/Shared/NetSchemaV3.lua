@@ -8,7 +8,6 @@
 -- via string.pack("<f"), free-form tables as the tagged form of the design note's section 4. It exists so
 -- Dev3's vectors (tools/net_vectors_v3.py -> tests/fixtures/net_vectors_v3.json) have one unambiguous
 -- byte form to compare against; Dev3 maps every field to the real codec from the same table.
---
 -- WRITTEN WITHOUT THE PROJECT FILES. Dev3 owns the wire (FishingNet, RequestGuard, the StateRules rows),
 -- Dev1 the server handlers. The state names are the F1 list from CONTEXT.md and must match StateRules'
 -- row names byte for byte. The u8 enums (kind, option keys, reason codes) are listed in the design note,
@@ -31,9 +30,7 @@ NetSchemaV3.STR_MAX = 255 -- u8 length prefix; strings inside tables share the c
 -- The F1 player states (server-checked), the StateRules row names.
 NetSchemaV3.STATES = { "Walking", "Aiming", "Flight", "Presenting", "Retrieving", "Inspected", "HookWindow", "Hooked", "CatchScene", "Holding" }
 local STATE_SET: { [string]: boolean } = {}
-for _, s in NetSchemaV3.STATES do
-	STATE_SET[s] = true
-end
+for _, s in NetSchemaV3.STATES do STATE_SET[s] = true end
 
 local TYPES: { [string]: boolean } = { u8 = true, u16 = true, i16 = true, u32 = true, f32 = true, bool = true, str = true, ids = true, table = true }
 -- natural ranges of the integer types; a field's min/max narrow them
@@ -104,9 +101,7 @@ local function tableKind(t: { [any]: any }): (string?, number)
 		if typeof(k) == "string" then strs += 1 elseif isInt(k) and k >= 1 then ints += 1 end
 	end
 	if ints == n then
-		for i = 1, n do
-			if t[i] == nil then return nil, n end
-		end
+		for i = 1, n do if t[i] == nil then return nil, n end end
 		return "array", n
 	end
 	return if strs == n then "map" else nil, n
@@ -154,7 +149,8 @@ function NetSchemaV3.fieldProblem(f: Field, v: any): string?
 		if #v > (f.maxLen or NetSchemaV3.STR_MAX) then return f.name .. ": too long" end
 		if not isAscii(v) then return f.name .. ": not ASCII" end
 	elseif t == "ids" then
-		local kind, n = if typeof(v) == "table" then tableKind(v) else nil, 0
+		local kind: string?, n = nil, 0
+		if typeof(v) == "table" then kind, n = tableKind(v) end
 		if kind ~= "array" then return f.name .. ": expected ids" end
 		if n > (f.maxLen or 255) then return f.name .. ": too long" end
 		local lo, hi = f.min or 1, f.max or 65535
@@ -208,9 +204,7 @@ end
 -- Every message id, sorted.
 function NetSchemaV3.ids(messages: Messages?): { number }
 	local out: { number } = {}
-	for _, m in messagesOf(messages) do
-		table.insert(out, m.id)
-	end
+	for _, m in messagesOf(messages) do table.insert(out, m.id) end
 	table.sort(out)
 	return out
 end
@@ -235,26 +229,21 @@ local function packValue(v: any): string
 		return "\4" .. string.pack("<d", v)
 	end
 	if t == "string" then return "\5" .. string.pack("<I2", #v) .. v end
-	local kind, n = if t == "table" then tableKind(v) else nil, 0
+	if t ~= "table" then error("NetSchemaV3.encode: value is not JSON-safe (" .. t .. ")") end
+	local kind, n = tableKind(v)
 	if kind == "array" then
 		local parts = { "\6" .. string.pack("<I2", n) }
-		for i = 1, n do
-			table.insert(parts, packValue(v[i]))
-		end
+		for i = 1, n do table.insert(parts, packValue(v[i])) end
 		return table.concat(parts)
 	elseif kind == "map" then
 		local keys: { string } = {}
-		for k in v do
-			table.insert(keys, k)
-		end
+		for k in v do table.insert(keys, k) end
 		table.sort(keys)
 		local parts = { "\7" .. string.pack("<I2", n) }
-		for _, k in keys do
-			table.insert(parts, string.pack("<I2", #k) .. k .. packValue(v[k]))
-		end
+		for _, k in keys do table.insert(parts, string.pack("<I2", #k) .. k .. packValue(v[k])) end
 		return table.concat(parts)
 	end
-	error("NetSchemaV3.encode: value is not JSON-safe (" .. t .. ")")
+	error("NetSchemaV3.encode: table mixes array and string keys")
 end
 
 local function packField(f: Field, v: any): string
@@ -263,10 +252,9 @@ local function packField(f: Field, v: any): string
 	if f.type == "bool" then return string.pack("<B", if v then 1 else 0) end
 	if f.type == "str" then return string.pack("<B", #v) .. v end
 	if f.type == "ids" then
-		local parts = { string.pack("<B", #v) }
-		for i = 1, #v do
-			table.insert(parts, string.pack("<I2", v[i]))
-		end
+		local arr: { number } = v
+		local parts = { string.pack("<B", #arr) }
+		for i = 1, #arr do table.insert(parts, string.pack("<I2", arr[i])) end
 		return table.concat(parts)
 	end
 	return packValue(v)
@@ -278,9 +266,7 @@ function NetSchemaV3.encode(name: string, payload: { [string]: any }, messages: 
 	if not ok then error("NetSchemaV3.encode: " .. name .. ": " .. tostring(why)) end
 	local m = messagesOf(messages)[name]
 	local parts = { string.pack("<B", m.id) }
-	for _, f in m.fields do
-		table.insert(parts, packField(f, payload[f.name]))
-	end
+	for _, f in m.fields do table.insert(parts, packField(f, payload[f.name])) end
 	return table.concat(parts)
 end
 
@@ -290,7 +276,7 @@ function NetSchemaV3.decode(bytes: string, messages: Messages?): (string, { [str
 	local function read(fmt: string, width: number): any
 		if pos + width - 1 > #bytes then error("NetSchemaV3.decode: truncated at byte " .. pos) end
 		local v, nxt = string.unpack(fmt, bytes, pos)
-		pos = nxt
+		pos = nxt :: number
 		return v
 	end
 	local function readStr(fmt: string, width: number): string
@@ -310,9 +296,7 @@ function NetSchemaV3.decode(bytes: string, messages: Messages?): (string, { [str
 		if tag == 6 then
 			local n: number = read("<I2", 2)
 			local out: { any } = {}
-			for i = 1, n do
-				out[i] = unpackValue(depth + 1)
-			end
+			for i = 1, n do out[i] = unpackValue(depth + 1) end
 			return out
 		elseif tag == 7 then
 			local n: number = read("<I2", 2)
@@ -342,9 +326,7 @@ function NetSchemaV3.decode(bytes: string, messages: Messages?): (string, { [str
 		elseif f.type == "ids" then
 			local n: number = read("<B", 1)
 			local arr: { number } = {}
-			for i = 1, n do
-				arr[i] = read("<I2", 2)
-			end
+			for i = 1, n do arr[i] = read("<I2", 2) end
 			payload[f.name] = arr
 		else
 			payload[f.name] = unpackValue(1)
@@ -356,16 +338,12 @@ end
 
 -- Lower-case hex of a byte string, and back (the vectors' `hex` field).
 function NetSchemaV3.toHex(bytes: string): string
-	return (string.gsub(bytes, ".", function(c: string): string
-		return string.format("%02x", string.byte(c))
-	end))
+	return (string.gsub(bytes, ".", function(c: string): string return string.format("%02x", string.byte(c)) end))
 end
 
 function NetSchemaV3.fromHex(hex: string): string
 	assert(#hex % 2 == 0 and not string.find(hex, "[^0-9a-fA-F]"), "NetSchemaV3.fromHex: not a hex string")
-	return (string.gsub(hex, "..", function(h: string): string
-		return string.char(tonumber(h, 16) :: number)
-	end))
+	return (string.gsub(hex, "..", function(h: string): string return string.char(tonumber(h, 16) :: number) end))
 end
 
 -- ---------------------------------------------------------------- the schema's own check

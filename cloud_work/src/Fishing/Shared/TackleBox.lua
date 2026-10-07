@@ -29,6 +29,7 @@ TackleBox.DEFAULT_W = 8
 TackleBox.DEFAULT_H = 6
 TackleBox.MAX_DIM = 32 -- a save asking for a bigger grid is refused (keeps every scan bounded)
 TackleBox.MAX_CELLS = 64 -- a shape with more cells than this is refused
+TackleBox.MAX_ID = 2 ^ 31 -- a save with an id or nextId above this is refused (at 2^53, nextId + 1 == nextId: ids would repeat)
 
 local KINDS: { [string]: boolean } = { fish = true, lure = true, gear = true }
 
@@ -335,7 +336,7 @@ function TackleBox.deserialize(tbl: any): Box
 		-- the record is untrusted save data: read it through `any` and check every field
 		local s: any = typeof(list[i]) == "table" and list[i] or {}
 		local label = "TackleBox.deserialize: item " .. tostring(s.id ~= nil and s.id or i)
-		local problem: string? = if not isInt(s.id) or s.id < 1 then "bad id"
+		local problem: string? = if not isInt(s.id) or s.id < 1 or s.id > TackleBox.MAX_ID then "bad id"
 			elseif box.placed[s.id] then "duplicate id"
 			elseif not KINDS[s.kind] or typeof(s.key) ~= "string" then "bad kind or key"
 			elseif not validRot(s.rot) then "bad rotation"
@@ -360,6 +361,9 @@ function TackleBox.deserialize(tbl: any): Box
 		maxId = math.max(maxId, s.id)
 	end
 	local nextId = isInt(tbl.nextId) and tbl.nextId or 0
+	if nextId > TackleBox.MAX_ID then
+		error("TackleBox.deserialize: bad nextId " .. tostring(tbl.nextId))
+	end
 	box.nextId = math.max(nextId, maxId + 1)
 	return box
 end

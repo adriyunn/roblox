@@ -172,8 +172,12 @@ function Player.new(tape: Tape, sink: (string, any) -> ()): Player
 	return setmetatable(self, Player)
 end
 
--- Delivers every undelivered "in" entry with t <= untilT, in order; returns how many.
+-- Delivers every undelivered "in" entry with t <= untilT, in order; returns how many. The replay time
+-- moves to untilT first, so an expectOut raised from inside the sink reports this step's time.
 function Player.step(self: Player, untilT: number): number
+	if untilT > self._now then
+		self._now = untilT
+	end
 	local n = 0
 	while self._inIdx <= #self._ins and self._ins[self._inIdx].t <= untilT do
 		local e = self._ins[self._inIdx]
@@ -181,9 +185,6 @@ function Player.step(self: Player, untilT: number): number
 		n += 1
 		self.delivered += 1
 		self._sink(e.channel, EncounterReplay.deepCopy(e.payload))
-	end
-	if untilT > self._now then
-		self._now = untilT
 	end
 	return n
 end

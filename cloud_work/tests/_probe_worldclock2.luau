@@ -1,0 +1,5 @@
+local WorldClock = require("../src/Fishing/Shared/WorldClock")
+local c = WorldClock.new({ WeatherMinS = 0, WeatherMaxS = 0 })
+print("weatherLeftS", c.weatherLeftS, "advance(c, 1) with zero weather length ... (a hang here is the bug)")
+WorldClock.advance(c, 1)
+print("returned")

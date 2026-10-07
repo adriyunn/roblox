@@ -10,6 +10,7 @@ fixtures. Run from tools/: python3 -I parity_report_test.py
 """
 from __future__ import annotations
 
+import csv
 import json
 import os
 import shutil
@@ -135,14 +136,20 @@ def main() -> int:
         check(report(str(csv_path), "--bands", str(d / "badband.json")).returncode == 2, "a band on a non-numeric field exits 2")
         check(report().returncode == 2, "no input files exits 2")
 
-    # negative control: the report must be able to fail on real data that is out of band
+    # negative control: the report must be able to fail on the real export once a column is out of band
     with tempfile.TemporaryDirectory() as tmp:
-        shifted = csv_text.replace(",trout,bed,", ",trout,mid,")
+        rows = list(csv.reader(lines))
+        hover_col, mode_col = rows[0].index("hoverS"), rows[0].index("hookMode")
+        for r in rows[1:]:
+            if r[mode_col] == "mid":
+                r[hover_col] = "30.000"
         p = Path(tmp) / "shifted.csv"
-        p.write_text(shifted, encoding="utf-8")
-        proc_neg = report(str(p), "--bands", str(BANDS), "--skip-empty")
-        check(proc_neg.returncode == 1 and any(r.startswith("mid ") and "hoverS" in r and "FAIL" in r for r in table_rows(proc_neg.stdout)),
-              "negative control: relabelling the bed encounters as mid pushes mid hoverS out of 2..20 and fails")
+        with p.open("w", encoding="utf-8", newline="\n") as fh:
+            csv.writer(fh, lineterminator="\n").writerows(rows)
+        proc_neg = report(str(p), "--bands", str(BANDS))
+        check(proc_neg.returncode == 1 and any(r.startswith("mid ") and "hoverS" in r and "FAIL" in r and "30.000" in r for r in table_rows(proc_neg.stdout)),
+              "negative control: the real export with mid hoverS pushed to 30 s fails the 2..20 band")
+        check(sum("FAIL" in r for r in table_rows(proc_neg.stdout)) == 1, "negative control: only that one band fails")
 
     if fails:
         print(f"parity_report_test: FAIL {len(fails)} of {len(checks)}")

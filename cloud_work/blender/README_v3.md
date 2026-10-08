@@ -74,14 +74,14 @@ flip the rect, or ask Cloud for a `--face-left` build (it is a one-line camera c
       "length_m": 0.40, "facing": "right",
       "side": {
         "file": "trout_side.png", "w": 512, "h": 192,
-        "bounds_px": {"x0": 20, "y0": 25, "x1": 492, "y1": 168},   -- opaque box (alpha > 8), x1/y1 exclusive
-        "px_per_m": 1181.0,                                         -- sprite pixels per metre of fish
-        "nose_px": [492.1, 97.2],                                   -- where the mouth tip lands in the sprite
-        "length_px": 472.4,                                         -- length_m * px_per_m
+        "bounds_px": {"x0": 20, "y0": 24, "x1": 492, "y1": 167},   -- opaque box (alpha > 8), x1/y1 exclusive
+        "px_per_m": 1181.17,                                        -- sprite pixels per metre of fish
+        "nose_px": [492.9, 116.8],                                  -- where the mouth tip lands in the sprite
+        "length_px": 472.5,                                         -- length_m * px_per_m
         "fish_bbox_m": [0.3988, 0.1201]                             -- mesh extent along x and z
       },
-      "icon": {"file": "trout_icon.png", "w": 96, "h": 96, "px_per_m": 461.5, "window_m": 0.208,
-               "bounds_px": {...}}
+      "icon": {"file": "trout_icon.png", "w": 96, "h": 96, "px_per_m": 461.54, "window_m": 0.208,
+               "bounds_px": {"x0": 0, "y0": 20, "x1": 90, "y1": 76}}
     }, ...
   }
 }

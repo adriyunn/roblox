@@ -13,10 +13,11 @@ Start with `HANDOFF_COORDINATOR.md`: it routes every item to its owner.
 | `CONTEXT.md` | The digest of the six sessions' transcripts the rest was written from | reference |
 | `HANDOFF_COORDINATOR.md` | What each item is, who takes it, what it unblocks | read first |
 | `pull_cloud_work.bat` | Pulls this branch next to GameOne on Windows and opens the handoff | run on either machine |
-| `src/Fishing/Shared/*.lua`, `src/Fishing/Server/SaveData.lua`, `src/Fishing/Client/*.lua` | Eleven pure Luau modules with no Roblox globals; services are injected; reviewed adversarially (`design/reviews/`) | tested, `luau-analyze` clean |
-| `tests/` | `RobloxStub.luau` (fake clock, DataStore, JSON, Instance, Players, RunService), one `*_test.luau` per module, `run_all.sh`, `fixtures/` (encounter samples, net vectors) | 15 suites, 1,018 checks, all PASS |
-| `tools/` | `setup_luau.sh`, `check_lf.py`, `parity_report.py` + `parity_bands.json`, `net_vectors_v3.py` | tested |
-| `design/` | 14 design notes, `PARITY_rows_F2plus.md`, `SFX_ART_LIST.md`, `ROBLOX_constraints.md`, `reviews/`, `mockups/`, `templates/` | drafts for rulings |
+| `src/Fishing/Shared/*.lua`, `src/Fishing/Server/*.lua`, `src/Fishing/Client/*.lua` | Twenty-one pure Luau modules with no Roblox globals; services are injected; reviewed adversarially (`design/reviews/`); plus two compile-only Roblox scripts (`ProfileService.server.lua`, `InputMapAdapter.client.lua`) | tested, `luau-analyze` clean |
+| `tests/` | `RobloxStub.luau` (fake clock, DataStore, JSON, Instance, Players, RunService), one `*_test.luau` per module, `run_all.sh`, `fixtures/`, four Studio sandbox drivers | 27 suites, 2,046 checks, all PASS |
+| `tools/` | `setup_luau.sh`, `check_lf.py`, `check_conventions.py`, `mutate.py`, `parity_report.py` + `parity_bands.json`, `net_vectors_v3.py`, `ccr_digest.py` | tested |
+| `design/` | 19 design notes, `PARITY_rows_F2plus.md`, `SFX_ART_LIST.md`, `ROBLOX_constraints.md`, `reviews/`, `mockups/` (6), `templates/` | drafts for rulings |
+| `process/` | + `DAY_ONE_PLAN.md` | for the restart |
 | `kickoff/` | One ready-to-paste message per session | for Adrian |
 | `process/` | Git migration, reviewer backup rule, token audit, cloud quota, Adrian's window, FishingConfig split | proposals |
 | `patches/` | Two DRAFT patch docs (lineM clamp, FishJudge header) | Dev1 fits to real bytes |
@@ -45,6 +46,17 @@ On Windows with the team's CLI on PATH: run each suite from its folder, `luau ta
 | `NetSchemaV3` | 210 (+27 py) | The 13 v3 messages: declarative schema, validator, per-state permission, a reference canonical encoding checked against 92 independent Python vectors |
 | `TackleBoxUI` (Client) | 127 | Grid geometry, hit testing, a drag state machine with the same four verbs for mouse, touch and gamepad; the renderer injects `canPlace` |
 | `CatchCard` (Client) | 49 | The catch card's text: metric or imperial with ounce carry, badges in a fixed order, the price |
+| `InputMap` (Client) | 162 | Mouse, touch, gamepad and gyro events become one set of calls per state; the mapping table also feeds the controls page |
+| `InventoryService` (Server) | 155 | The v3 request handler: move, drop, sell, buy, equip, catch-into-box with make-room; a 200-request fuzz |
+| `FishBed` | 48 | The cached bed sampler with an injected raycast and a fallback |
+| `PerfProbe` | 49 | Timing rings per label in ms, median/p95, budgets |
+| `Schedule` | 61 | NPC routines by hour and day, town changes |
+| `EvidenceBoard` | 85 | Clues, links, conclusions, the find roll, save and merge |
+| `Fillet` | 75 | The filleting minigame as timed cuts, a score and a price multiplier |
+| `Tutorial` | 86 | A step engine with gates, hints, timeouts, resume; the F1 loop as a script |
+
+Check counts above are from the round-3 gate; suites also carry `R`/`N`/`M`-labelled regression
+and mutation-killing checks added by the review and the mutation pass.
 
 ## Rules this work follows
 LF line endings everywhere (`tools/check_lf.py` enforces it). No sizes or hashes invented: file

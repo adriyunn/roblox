@@ -1,0 +1,206 @@
+{
+  "version": 3,
+  "generated": "2026-10-08",
+  "facing": "right",
+  "note": "nose at +X renders on the RIGHT; bounds_px is the opaque box of the sprite; px_per_m scales metres to sprite pixels; the UI scales a sprite so bounds width -> cells * cellPx (+ gaps)",
+  "species": {
+    "trout": {
+      "side": {
+        "file": "trout_side.png",
+        "w": 512,
+        "h": 192,
+        "bounds_px": {
+          "x0": 20,
+          "y0": 24,
+          "x1": 492,
+          "y1": 167
+        },
+        "px_per_m": 1181.17,
+        "nose_px": [
+          492.9,
+          116.8
+        ],
+        "length_px": 472.5,
+        "fish_bbox_m": [
+          0.3988,
+          0.1201
+        ]
+      },
+      "icon": {
+        "file": "trout_icon.png",
+        "w": 96,
+        "h": 96,
+        "px_per_m": 461.54,
+        "window_m": 0.208,
+        "bounds_px": {
+          "x0": 0,
+          "y0": 20,
+          "x1": 90,
+          "y1": 76
+        }
+      },
+      "length_m": 0.4,
+      "facing": "right"
+    },
+    "perch": {
+      "side": {
+        "file": "perch_side.png",
+        "w": 512,
+        "h": 192,
+        "bounds_px": {
+          "x0": 62,
+          "y0": 7,
+          "x1": 450,
+          "y1": 185
+        },
+        "px_per_m": 1556.19,
+        "nose_px": [
+          450.8,
+          126.2
+        ],
+        "length_px": 389.0,
+        "fish_bbox_m": [
+          0.2491,
+          0.1135
+        ]
+      },
+      "icon": {
+        "file": "perch_icon.png",
+        "w": 96,
+        "h": 96,
+        "px_per_m": 738.46,
+        "window_m": 0.13,
+        "bounds_px": {
+          "x0": 0,
+          "y0": 6,
+          "x1": 90,
+          "y1": 85
+        }
+      },
+      "length_m": 0.25,
+      "facing": "right"
+    },
+    "pike": {
+      "side": {
+        "file": "pike_side.png",
+        "w": 512,
+        "h": 192,
+        "bounds_px": {
+          "x0": 20,
+          "y0": 37,
+          "x1": 492,
+          "y1": 155
+        },
+        "px_per_m": 674.9,
+        "nose_px": [
+          492.8,
+          98.9
+        ],
+        "length_px": 472.4,
+        "fish_bbox_m": [
+          0.6979,
+          0.1728
+        ]
+      },
+      "icon": {
+        "file": "pike_icon.png",
+        "w": 96,
+        "h": 96,
+        "px_per_m": 263.74,
+        "window_m": 0.364,
+        "bounds_px": {
+          "x0": 0,
+          "y0": 36,
+          "x1": 90,
+          "y1": 63
+        }
+      },
+      "length_m": 0.7,
+      "facing": "right"
+    },
+    "carp": {
+      "side": {
+        "file": "carp_side.png",
+        "w": 512,
+        "h": 192,
+        "bounds_px": {
+          "x0": 51,
+          "y0": 7,
+          "x1": 461,
+          "y1": 185
+        },
+        "px_per_m": 820.65,
+        "nose_px": [
+          461.5,
+          130.3
+        ],
+        "length_px": 410.3,
+        "fish_bbox_m": [
+          0.4979,
+          0.2152
+        ]
+      },
+      "icon": {
+        "file": "carp_icon.png",
+        "w": 96,
+        "h": 96,
+        "px_per_m": 369.23,
+        "window_m": 0.26,
+        "bounds_px": {
+          "x0": 0,
+          "y0": 8,
+          "x1": 90,
+          "y1": 86
+        }
+      },
+      "length_m": 0.5,
+      "facing": "right"
+    },
+    "minnow": {
+      "side": {
+        "file": "minnow_side.png",
+        "w": 512,
+        "h": 192,
+        "bounds_px": {
+          "x0": 20,
+          "y0": 27,
+          "x1": 492,
+          "y1": 165
+        },
+        "px_per_m": 5910.84,
+        "nose_px": [
+          493.1,
+          110.3
+        ],
+        "length_px": 472.9,
+        "fish_bbox_m": [
+          0.0797,
+          0.0232
+        ]
+      },
+      "icon": {
+        "file": "minnow_icon.png",
+        "w": 96,
+        "h": 96,
+        "px_per_m": 2307.69,
+        "window_m": 0.0416,
+        "bounds_px": {
+          "x0": 0,
+          "y0": 35,
+          "x1": 90,
+          "y1": 69
+        }
+      },
+      "length_m": 0.08,
+      "facing": "right"
+    }
+  },
+  "side_size": [
+    512,
+    192
+  ],
+  "icon_size": [
+    96,
+    96
+  ]
+}

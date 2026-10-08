@@ -244,3 +244,85 @@ import limit is now 20,000 triangles (constraints note), so the budgets have roo
 `CLAUDE.md` at the repo root carries the conventions above; `.claude/hooks/session-start.sh` installs
 the Luau CLI, `bpy` and Pillow in every cloud session on this repo (validated: hook exit 0, lint and a
 suite pass). `kickoff/` holds one message per session. Probe files from the review were removed.
+
+---
+
+# Round 3 (2026-10-08)
+
+Same branch. The gate after round 3: **run_all: PASS, 27 suites** (22 Luau suites with 1,950
+checks, 4 Python tools with 96, the conventions linter over 21 modules, the quick mutation check:
+228 mutants, 208 killed, every survivor documented), `luau-analyze` clean on all 21 modules and the
+stub, and CI now fails on any analyze error. Round 3 turned the F2 parts into working features
+(the inventory service, the device layer), added four later-phase mechanics as logic, closed the
+review, and gave the assets real textures.
+
+## R3.0 Routing, one line each
+
+| # | Item | Owner | Action | Unblocks |
+|---|---|---|---|---|
+| 34 | `src/Fishing/Server/InventoryService.lua` + `ProfileService.server.lua` | Dev1 | Review as new; the wiring script merges into FishingServer (replace the `State` attribute with StateRules' state) | the whole F2 economy as one feature |
+| 35 | `src/Fishing/Client/InputMap.lua` + `InputMapAdapter.client.lua` | Dev1, Dev2 | Review; decide where sensitivity/invert apply (InputMap once, or CameraAF: never both); rename `KEY_INPUT` to InputController's real bindings | phone and gamepad players |
+| 36 | `src/Fishing/Shared/{FishBed,PerfProbe}.lua` | Dev1, Dev3 | FishBed behind the bed-raycast ruling; PerfProbe for the perf matrix | items 11, 14 |
+| 37 | `src/Fishing/Shared/{Schedule,EvidenceBoard,Fillet,Tutorial}.lua` | Coordinator | Park until F3-F5; the F1 tutorial script (`Tutorial.F1_SCRIPT`) can run earlier | later phases |
+| 38 | `design/reviews/cloud_modules_review_Cloud.md` (follow-up pass) | Dev1 | F14 is fixed; re-review the R9 and N-labelled hunks | the modules' approval |
+| 39 | `tools/mutate.py`, `tools/check_conventions.py` | FableDev | Adopt in the team's gate after the git migration; `--full` is 4,730 mutants and not the gate | trust in every suite |
+| 40 | `design/{WSD_lures,WSF_aquarium,WSB_line_anchors,WSD_fish_pilot,WSG_avatar_agnostic}.md` | Coordinator | Rule (key ruling per note in R3.2) | F2-F3 design |
+| 41 | `process/DAY_ONE_PLAN.md` | Coordinator, Adrian | Run the first day by it | the restart |
+| 42 | `blender/exports_v3/` (+ `sprites/`, `README_v3.md`) | Dev2 | Import one fish with its maps; try the animated trout in the Animation Editor; wire the sprites into TackleBoxUI | F2 species, the box screen |
+| 43 | `design/mockups/` (+3) | Dev2, Adrian | Look references for the evidence board, catch log, gear shop | three screens |
+| 44 | `tools/ccr_digest.py` | FableDev | A cloud session catches up on the local sessions in one command | cloud sessions |
+| 45 | `tests/*_sandbox_driver.server.lua` (3) | Dev1 | Run in a sandbox with Studio API access on | SaveData, WorldClock, EncounterLog in Studio |
+
+## R3.1 What is NEW and tested
+
+| Module | Checks | What it gives the project |
+|---|---|---|
+| `Server/InventoryService` | 155 | The server handler for the v3 requests: move, drop, sell, buy, equip, the catch into the box with the make-room flow, read-only profiles, corrupt sub-fields falling back with a warn. A 200-request seeded fuzz holds coins >= 0, the box invariant and unique ids. Finding for Dev3: `TackleSync.nextId` is u16, so a box past 65,535 lifetime placements stops syncing |
+| `Client/InputMap` | 162 | Mouse, touch, gamepad and gyro all produce the same ten calls; the mapping table is one source for dispatch and the options screen's controls page. Gamepad rod is travel (a stick snap is a 300 px flick), gamepad orbit is rate; sensitivity and invert Y apply once, here |
+| `Shared/FishBed` | 48 | The cached bed sampler from the raycast note; 8 fish = 2 rays/s each, confirmed |
+| `Shared/PerfProbe` | 49 | Labelled timing rings in milliseconds, median/p95, budgets, the results table |
+| `Shared/Schedule` | 61 | NPC routines tiling 0..24 with conditional overlays and per-day overrides; the town's day-by-day changes |
+| `Shared/EvidenceBoard` | 85 | Clues, manual and automatic links, conclusions, the "clues surface while fishing" roll over sorted ids, a save form and a merge |
+| `Shared/Fillet` | 75 | The filleting minigame as three timed cuts (7 s for a 0.40 m trout), a score and a price multiplier; no gore state at all |
+| `Shared/Tutorial` | 86 | A step engine with gates, hints, timeouts and resume; `F1_SCRIPT` is the F1 loop as data |
+| `tools/mutate.py` | 21 | The team's mutant-killing idea for every cloud suite; quick mode in the gate |
+| `tools/check_conventions.py` | — | CLAUDE.md's module rules, enforced |
+| `tools/ccr_digest.py` | 14 | Transcript dumps to a one-line-per-event digest |
+
+Hardening: F14 fixed (concurrent shutdown saves, capped retries, loads refused while closing;
+R9a-c); nine review nits closed with regression checks (NaN spawn weight, infinite price, items()
+copies, wave ramp, NaN-safe deepEqual, BOM/nan handling in the tool, the stub's JSON holes and
+`Signal.Once`); the stub is analyze-clean under both solvers.
+
+## R3.2 The five notes, the key ruling each asks for
+
+| Note | Asks | Recommends |
+|---|---|---|
+| `WSD_lures.md` | A wrong lure: fewer notices or none | A, fewer, never zero, until clip V53; three lures in F2; the starter lure is the identity so the mid-water traces stay byte-identical |
+| `WSF_aquarium.md` | A town place filled from the catch log, or a home tank fed from the box | A for F3: client-side from `CatchLogSync`, no new save field |
+| `WSB_line_anchors.md` | The pull moves the hook or the character | The hook (this note) until clip V59; one pinned kink in F3; `LineLatch` ids 38/56 for Dev3 to assign |
+| `WSD_fish_pilot.md` | Story-only piloting or free | A: pilot only when a goal is within the leash; carp as the demonstrator, trout never |
+| `WSG_avatar_agnostic.md` | Force ROBLOX Boy in F1 with `RigMetrics` underneath, or any avatar now | A: Boy reproduces F1 to the byte (k = 1.0); avatar-agnostic in R1 |
+
+## R3.3 Blender round 3 (item 42)
+
+| Asset | Triangles | What changed |
+|---|---|---|
+| `fish_{trout,perch,pike,carp,minnow}.fbx` | 5,772-7,012 | Baked normal map with overlapping scales (carp 20 mm cells to minnow 1.5 mm), a roughness map (wet back, matte fins), fins with real ray ridges, an eye with pupil disc and cornea; previews rendered from the re-imported FBX so the maps are proven to survive |
+| `fish_trout_animated.fbx` | | Two actions: `Swim` (30-frame loop, travelling wave 2-25 deg) and `Bend` (k = -1/0/+1 poses for `TroutView.setBend`); re-import verified the mesh deforms |
+| `sprites/` | | Side-view RGBA sprites 512x192 and 96x96 icons per species, facing right, with `sprites.json` (pixel bounds, px per metre) for `TackleBoxUI` scaling; the mockup draws heads left, so one flip may be wanted |
+| `rod_and_reel.fbx` | 3,524 | A real spinning reel: spool with line wrap, bail wire, crank and knob, foot |
+| `lure_{spinner,spoon,fly}.fbx` | 366-1,298 | 6 cm spinner, 7 cm spoon, 2 cm fly |
+| `boat.fbx` | 3,010 | 3.5 m clinker rowing boat with thwarts and oars |
+| `tacklebox.fbx` | 952 | The 3D tackle box with the 8x6 divider grid matching the UI |
+
+Still off (README_v3): the scale lattice is regular rather than organic, fin corrugation is a
+triangle wave up close, no fin flex in the swim, props are diffuse-only, and the sprites look like
+renders rather than the mockups' painted style. Dev2 confirms: the 3D Importer's handling of the
+normal and roughness maps (or a SurfaceAppearance by hand), the normal map's green convention, the
+Bend sign against `setBend`, the sprite facing.
+
+## R3.4 Not done
+
+The fourth round-3 mockup (the options screen) hit the image service's daily free-plan limit; the
+prompt is in `design/mockups/README.md`. Sounds (C8) were excluded by Adrian.

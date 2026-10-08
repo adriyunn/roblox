@@ -1,0 +1,550 @@
+[
+  {
+    "preset": "trout",
+    "kind": "fish",
+    "length_m": 0.4,
+    "triangles": 7012,
+    "subdiv_applied": true,
+    "dimensions_m": [
+      0.3988,
+      0.0835,
+      0.1201
+    ],
+    "rings": 30,
+    "sides": 18,
+    "textures": {
+      "diffuse": "/home/user/roblox/cloud_work/blender/exports_v3/fish_trout_diffuse.png",
+      "normal": "/home/user/roblox/cloud_work/blender/exports_v3/fish_trout_normal.png",
+      "roughness": "/home/user/roblox/cloud_work/blender/exports_v3/fish_trout_roughness.png"
+    },
+    "scales": {
+      "cell": 0.004,
+      "height": 0.00065
+    },
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v3/fish_trout.fbx",
+    "fbx_animated": "/home/user/roblox/cloud_work/blender/exports_v3/fish_trout_animated.fbx",
+    "bones": [
+      "head",
+      "body1",
+      "body2",
+      "body3",
+      "body4",
+      "peduncle",
+      "tail"
+    ],
+    "animation": {
+      "file": "/home/user/roblox/cloud_work/blender/exports_v3/fish_trout_animated.fbx",
+      "armatures": [
+        "fish_trout_rig"
+      ],
+      "meshes": [
+        "fish_trout"
+      ],
+      "bones": [
+        "head",
+        "body1",
+        "body2",
+        "body3",
+        "body4",
+        "peduncle",
+        "tail"
+      ],
+      "actions": [
+        {
+          "name": "fish_trout_rig|fish_trout_rig|Bend",
+          "frame_range": [
+            1.0,
+            30.0
+          ],
+          "tail_vertex_frame1": [
+            -0.37362,
+            0.11575,
+            0.03361
+          ],
+          "tail_vertex_frame15": [
+            -0.39996,
+            0.00105,
+            0.03391
+          ],
+          "tail_moved_m": 0.11769
+        },
+        {
+          "name": "fish_trout_rig|fish_trout_rig|Swim",
+          "frame_range": [
+            1.0,
+            30.0
+          ],
+          "tail_vertex_frame1": [
+            -0.37757,
+            0.09288,
+            0.03329
+          ],
+          "tail_vertex_frame15": [
+            -0.38333,
+            -0.08355,
+            0.03466
+          ],
+          "tail_moved_m": 0.17653
+        }
+      ]
+    },
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v3/fish_trout_34.png",
+      "/home/user/roblox/cloud_work/blender/previews_v3/fish_trout_side.png",
+      "/home/user/roblox/cloud_work/blender/previews_v3/trout_swim_strip.png"
+    ],
+    "sprites": {
+      "side": {
+        "file": "trout_side.png",
+        "w": 512,
+        "h": 192,
+        "bounds_px": {
+          "x0": 20,
+          "y0": 24,
+          "x1": 492,
+          "y1": 167
+        },
+        "px_per_m": 1181.17,
+        "nose_px": [
+          492.9,
+          116.8
+        ],
+        "length_px": 472.5,
+        "fish_bbox_m": [
+          0.3988,
+          0.1201
+        ]
+      },
+      "icon": {
+        "file": "trout_icon.png",
+        "w": 96,
+        "h": 96,
+        "px_per_m": 461.54,
+        "window_m": 0.208,
+        "bounds_px": {
+          "x0": 0,
+          "y0": 20,
+          "x1": 90,
+          "y1": 76
+        }
+      },
+      "length_m": 0.4,
+      "facing": "right"
+    },
+    "forward_axis": "FBX +X (Roblox RightVector)"
+  },
+  {
+    "preset": "perch",
+    "kind": "fish",
+    "length_m": 0.25,
+    "triangles": 7004,
+    "subdiv_applied": true,
+    "dimensions_m": [
+      0.2491,
+      0.0563,
+      0.1135
+    ],
+    "rings": 28,
+    "sides": 18,
+    "textures": {
+      "diffuse": "/home/user/roblox/cloud_work/blender/exports_v3/fish_perch_diffuse.png",
+      "normal": "/home/user/roblox/cloud_work/blender/exports_v3/fish_perch_normal.png",
+      "roughness": "/home/user/roblox/cloud_work/blender/exports_v3/fish_perch_roughness.png"
+    },
+    "scales": {
+      "cell": 0.0065,
+      "height": 0.001
+    },
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v3/fish_perch.fbx",
+    "fbx_animated": null,
+    "bones": [],
+    "animation": null,
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v3/fish_perch_34.png",
+      "/home/user/roblox/cloud_work/blender/previews_v3/fish_perch_side.png"
+    ],
+    "sprites": {
+      "side": {
+        "file": "perch_side.png",
+        "w": 512,
+        "h": 192,
+        "bounds_px": {
+          "x0": 62,
+          "y0": 7,
+          "x1": 450,
+          "y1": 185
+        },
+        "px_per_m": 1556.19,
+        "nose_px": [
+          450.8,
+          126.2
+        ],
+        "length_px": 389.0,
+        "fish_bbox_m": [
+          0.2491,
+          0.1135
+        ]
+      },
+      "icon": {
+        "file": "perch_icon.png",
+        "w": 96,
+        "h": 96,
+        "px_per_m": 738.46,
+        "window_m": 0.13,
+        "bounds_px": {
+          "x0": 0,
+          "y0": 6,
+          "x1": 90,
+          "y1": 85
+        }
+      },
+      "length_m": 0.25,
+      "facing": "right"
+    },
+    "forward_axis": "FBX +X (Roblox RightVector)"
+  },
+  {
+    "preset": "pike",
+    "kind": "fish",
+    "length_m": 0.7,
+    "triangles": 6684,
+    "subdiv_applied": true,
+    "dimensions_m": [
+      0.6979,
+      0.128,
+      0.1728
+    ],
+    "rings": 28,
+    "sides": 18,
+    "textures": {
+      "diffuse": "/home/user/roblox/cloud_work/blender/exports_v3/fish_pike_diffuse.png",
+      "normal": "/home/user/roblox/cloud_work/blender/exports_v3/fish_pike_normal.png",
+      "roughness": "/home/user/roblox/cloud_work/blender/exports_v3/fish_pike_roughness.png"
+    },
+    "scales": {
+      "cell": 0.0085,
+      "height": 0.0013
+    },
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v3/fish_pike.fbx",
+    "fbx_animated": null,
+    "bones": [],
+    "animation": null,
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v3/fish_pike_34.png",
+      "/home/user/roblox/cloud_work/blender/previews_v3/fish_pike_side.png"
+    ],
+    "sprites": {
+      "side": {
+        "file": "pike_side.png",
+        "w": 512,
+        "h": 192,
+        "bounds_px": {
+          "x0": 20,
+          "y0": 37,
+          "x1": 492,
+          "y1": 155
+        },
+        "px_per_m": 674.9,
+        "nose_px": [
+          492.8,
+          98.9
+        ],
+        "length_px": 472.4,
+        "fish_bbox_m": [
+          0.6979,
+          0.1728
+        ]
+      },
+      "icon": {
+        "file": "pike_icon.png",
+        "w": 96,
+        "h": 96,
+        "px_per_m": 263.74,
+        "window_m": 0.364,
+        "bounds_px": {
+          "x0": 0,
+          "y0": 36,
+          "x1": 90,
+          "y1": 63
+        }
+      },
+      "length_m": 0.7,
+      "facing": "right"
+    },
+    "forward_axis": "FBX +X (Roblox RightVector)"
+  },
+  {
+    "preset": "carp",
+    "kind": "fish",
+    "length_m": 0.5,
+    "triangles": 6804,
+    "subdiv_applied": true,
+    "dimensions_m": [
+      0.4979,
+      0.1344,
+      0.2152
+    ],
+    "rings": 28,
+    "sides": 18,
+    "textures": {
+      "diffuse": "/home/user/roblox/cloud_work/blender/exports_v3/fish_carp_diffuse.png",
+      "normal": "/home/user/roblox/cloud_work/blender/exports_v3/fish_carp_normal.png",
+      "roughness": "/home/user/roblox/cloud_work/blender/exports_v3/fish_carp_roughness.png"
+    },
+    "scales": {
+      "cell": 0.02,
+      "height": 0.003
+    },
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v3/fish_carp.fbx",
+    "fbx_animated": null,
+    "bones": [],
+    "animation": null,
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v3/fish_carp_34.png",
+      "/home/user/roblox/cloud_work/blender/previews_v3/fish_carp_side.png",
+      "/home/user/roblox/cloud_work/blender/previews_v3/materials_closeup.png"
+    ],
+    "sprites": {
+      "side": {
+        "file": "carp_side.png",
+        "w": 512,
+        "h": 192,
+        "bounds_px": {
+          "x0": 51,
+          "y0": 7,
+          "x1": 461,
+          "y1": 185
+        },
+        "px_per_m": 820.65,
+        "nose_px": [
+          461.5,
+          130.3
+        ],
+        "length_px": 410.3,
+        "fish_bbox_m": [
+          0.4979,
+          0.2152
+        ]
+      },
+      "icon": {
+        "file": "carp_icon.png",
+        "w": 96,
+        "h": 96,
+        "px_per_m": 369.23,
+        "window_m": 0.26,
+        "bounds_px": {
+          "x0": 0,
+          "y0": 8,
+          "x1": 90,
+          "y1": 86
+        }
+      },
+      "length_m": 0.5,
+      "facing": "right"
+    },
+    "forward_axis": "FBX +X (Roblox RightVector)"
+  },
+  {
+    "preset": "minnow",
+    "kind": "fish",
+    "length_m": 0.08,
+    "triangles": 5772,
+    "subdiv_applied": true,
+    "dimensions_m": [
+      0.0797,
+      0.0161,
+      0.0232
+    ],
+    "rings": 26,
+    "sides": 16,
+    "textures": {
+      "diffuse": "/home/user/roblox/cloud_work/blender/exports_v3/fish_minnow_diffuse.png",
+      "normal": "/home/user/roblox/cloud_work/blender/exports_v3/fish_minnow_normal.png",
+      "roughness": "/home/user/roblox/cloud_work/blender/exports_v3/fish_minnow_roughness.png"
+    },
+    "scales": {
+      "cell": 0.0015,
+      "height": 0.00022
+    },
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v3/fish_minnow.fbx",
+    "fbx_animated": null,
+    "bones": [],
+    "animation": null,
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v3/fish_minnow_34.png",
+      "/home/user/roblox/cloud_work/blender/previews_v3/fish_minnow_side.png"
+    ],
+    "sprites": {
+      "side": {
+        "file": "minnow_side.png",
+        "w": 512,
+        "h": 192,
+        "bounds_px": {
+          "x0": 20,
+          "y0": 27,
+          "x1": 492,
+          "y1": 165
+        },
+        "px_per_m": 5910.84,
+        "nose_px": [
+          493.1,
+          110.3
+        ],
+        "length_px": 472.9,
+        "fish_bbox_m": [
+          0.0797,
+          0.0232
+        ]
+      },
+      "icon": {
+        "file": "minnow_icon.png",
+        "w": 96,
+        "h": 96,
+        "px_per_m": 2307.69,
+        "window_m": 0.0416,
+        "bounds_px": {
+          "x0": 0,
+          "y0": 35,
+          "x1": 90,
+          "y1": 69
+        }
+      },
+      "length_m": 0.08,
+      "facing": "right"
+    },
+    "forward_axis": "FBX +X (Roblox RightVector)"
+  },
+  {
+    "preset": "rod_and_reel",
+    "kind": "rod3",
+    "length_m": 2.1,
+    "triangles": 3524,
+    "subdiv_applied": false,
+    "dimensions_m": [
+      2.1009,
+      0.0976,
+      0.1244
+    ],
+    "textures": {
+      "diffuse": "/home/user/roblox/cloud_work/blender/exports_v3/rod_and_reel_diffuse.png"
+    },
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v3/rod_and_reel.fbx",
+    "bones": [],
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v3/rod_and_reel_34.png",
+      "/home/user/roblox/cloud_work/blender/previews_v3/rod_and_reel_reel.png"
+    ],
+    "forward_axis": "FBX +X",
+    "origin": "butt end, rod along +X, guides and reel hang on -Z"
+  },
+  {
+    "preset": "lure_spinner",
+    "kind": "spinner",
+    "length_m": 0.06,
+    "triangles": 1298,
+    "subdiv_applied": false,
+    "dimensions_m": [
+      0.0178,
+      0.0123,
+      0.0608
+    ],
+    "textures": {
+      "diffuse": "/home/user/roblox/cloud_work/blender/exports_v3/lure_spinner_diffuse.png"
+    },
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v3/lure_spinner.fbx",
+    "bones": [],
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v3/lure_spinner_34.png"
+    ],
+    "forward_axis": "FBX +X",
+    "origin": "line eye at the origin, lure hangs along -Z"
+  },
+  {
+    "preset": "lure_spoon",
+    "kind": "spoon",
+    "length_m": 0.07,
+    "triangles": 1098,
+    "subdiv_applied": false,
+    "dimensions_m": [
+      0.0209,
+      0.0151,
+      0.0706
+    ],
+    "textures": {
+      "diffuse": "/home/user/roblox/cloud_work/blender/exports_v3/lure_spoon_diffuse.png"
+    },
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v3/lure_spoon.fbx",
+    "bones": [],
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v3/lure_spoon_34.png"
+    ],
+    "forward_axis": "FBX +X",
+    "origin": "line eye at the origin, lure hangs along -Z, painted face on -Y"
+  },
+  {
+    "preset": "lure_fly",
+    "kind": "fly",
+    "length_m": 0.02,
+    "triangles": 366,
+    "subdiv_applied": false,
+    "dimensions_m": [
+      0.018,
+      0.0111,
+      0.0112
+    ],
+    "textures": {
+      "diffuse": "/home/user/roblox/cloud_work/blender/exports_v3/lure_fly_diffuse.png"
+    },
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v3/lure_fly.fbx",
+    "bones": [],
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v3/lure_fly_34.png"
+    ],
+    "forward_axis": "FBX +X",
+    "origin": "hook eye at the origin, shank along -X, hook point down (-Z)"
+  },
+  {
+    "preset": "boat",
+    "kind": "boat",
+    "length_m": 3.5,
+    "triangles": 3010,
+    "subdiv_applied": false,
+    "dimensions_m": [
+      3.5216,
+      1.526,
+      0.8642
+    ],
+    "textures": {
+      "diffuse": "/home/user/roblox/cloud_work/blender/exports_v3/boat_diffuse.png"
+    },
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v3/boat.fbx",
+    "bones": [],
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v3/boat_34.png"
+    ],
+    "forward_axis": "FBX +X",
+    "origin": "centre of the bottom of the keel, bow +X, up +Z, waterline about z = 0.22"
+  },
+  {
+    "preset": "tacklebox",
+    "kind": "tacklebox",
+    "length_m": 0.6,
+    "triangles": 952,
+    "subdiv_applied": false,
+    "dimensions_m": [
+      0.608,
+      0.6758,
+      0.6045
+    ],
+    "textures": {
+      "diffuse": "/home/user/roblox/cloud_work/blender/exports_v3/tacklebox_diffuse.png"
+    },
+    "fbx": "/home/user/roblox/cloud_work/blender/exports_v3/tacklebox.fbx",
+    "bones": [],
+    "previews": [
+      "/home/user/roblox/cloud_work/blender/previews_v3/tacklebox_34.png"
+    ],
+    "forward_axis": "FBX +X",
+    "origin": "centre of the base (bottom face), front (latches) on -Y, lid hinged on +Y, open 100 deg"
+  }
+]

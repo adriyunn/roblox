@@ -11,6 +11,13 @@ and the final art is GameOne's own. Nothing here is taken from About Fishing; th
 | `tacklebox_mockup.png` | Tackle box inventory (design/WST_tacklebox.md) | The open wooden box as the grid frame; fish as side-view sprites spanning 1-6 cells, some rotated; the green ghost over valid cells; the "Selected" side panel with species, length, weight; the cell counter (26/48) | The button glyphs in the bottom-right are PlayStation shapes (Sony's marks). Use Roblox's gamepad glyph images (`UserInputService:GetImageForKeyCode`) or neutral labels instead |
 | `catchcard_mockup.png` | Catch card (design/WSL_catchlog.md, `CatchCard.lua`) | A cream card over the blurred catch scene; title, a painted side view, two stat lines, one badge ribbon, the coin value, a zone/time line | The trout painting is the model's; GameOne paints its own species art |
 | `trader_mockup.png` | Trader / sell screen (design/WSE_economy.md) | Left panel "Your catch" with icon, species, length, price; right panel total + Sell / Keep; the coin counter top-right; the stall, scale and crates as the scene | The fishmonger's face and the harbour are placeholders |
+| `evidenceboard_mockup.png` | Evidence board (design/PARITY_rows_F2plus.md P15, `EvidenceBoard.lua`) | A cork board with pinned items, red string between linked pins, empty slots for undiscovered clues, the selected pin glowing, "Clues 5 / 12" and "Links 3" counters, a found-where caption | Every clue on it is a placeholder; GameOne's own story decides what is pinned |
+| `catchlog_mockup.png` | Catch log (design/WSL_catchlog.md, `CatchLog.lua`) | A field notebook: a grid of species portraits with silhouettes for the unknown, the selected species' page with count, best length, heaviest, first catch (day, phase, place), a tab row Fish / Places / Gear | The fish paintings are the model's |
+| `gearshop_mockup.png` | Gear shop (design/WSE_economy.md, `InventoryService`) | Tabs per gear kind, a list with icon, name, price and "(owned)", a stat row for the selected item, Coins, Buy / Equip | Prices shown are illustrative; `GameData` is the source |
+
+A fourth round-3 mockup (the options screen with the controls page) was not generated: the image
+service's daily limit was reached on 2026-10-08. Generate it on another day with the prompt in
+`SFX_ART_LIST.md` if still wanted.
 
 Prompts used are recorded in the ElevenLabs generation history for the workspace; the key style
 words were: PS1/Dreamcast-era low-poly, soft vertex lighting, slight dithering, chunky pixel UI text,

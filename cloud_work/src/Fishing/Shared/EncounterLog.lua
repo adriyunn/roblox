@@ -137,7 +137,9 @@ function EncounterLog.finish(log: Log, id: string, t: number, outcome: string): 
 		hoverS = if hoverEnd then hoverEnd - tNotice else nil,
 		pressOffset = if tPress and tSwallow then tPress - tSwallow else nil,
 		verdict = verdict,
-		fightS = if tHooked and tFightEnd then tFightEnd - tHooked else nil,
+		-- a hooked fish's fight ends at its Caught / Snap / GiveUp cue, or at finish() when that cue was
+		-- not logged as an event (finish(t, outcome) alone is enough)
+		fightS = if tHooked then (tFightEnd or t) - tHooked else nil,
 		jumps = countName(ev, "Jump"),
 		spooks = countName(ev, "Spook"),
 		events = ev,

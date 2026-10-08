@@ -146,6 +146,20 @@ def main() -> int:
         proc_notobj = report(str(d / "notobj.json"), "--bands", str(BANDS))
         check(proc_notobj.returncode == 2 and "not an object" in proc_notobj.stderr, "R8b (F7): a JSON record that is not an object exits 2 with a message (was: a traceback, exit 1)")
 
+    # N9: "nan" / "inf" cells and a boolean band edge are input errors (exit 2), not numbers
+    with tempfile.TemporaryDirectory() as tmp:
+        d = Path(tmp)
+        rows_nan = list(csv.reader(lines))
+        rows_nan[1][rows_nan[0].index("hoverS")] = "nan"
+        p = d / "nan.csv"
+        with p.open("w", encoding="utf-8", newline="\n") as fh:
+            csv.writer(fh, lineterminator="\n").writerows(rows_nan)
+        proc_nan = report(str(p), "--bands", str(BANDS))
+        (d / "boolband.json").write_text('{"bed": {"hoverS": [true, 45]}}', encoding="utf-8")
+        proc_bool = report(str(csv_path), "--bands", str(d / "boolband.json"))
+        check(proc_nan.returncode == 2 and "non-finite" in proc_nan.stderr and proc_bool.returncode == 2 and "must be [lo, hi]" in proc_bool.stderr,
+              "N9: a nan cell and a boolean band edge both exit 2 with a message (was: nan parsed as a number, true passed the int check)")
+
     # negative control: the report must be able to fail on the real export once a column is out of band
     with tempfile.TemporaryDirectory() as tmp:
         rows = list(csv.reader(lines))

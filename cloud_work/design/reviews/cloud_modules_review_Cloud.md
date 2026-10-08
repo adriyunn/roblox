@@ -10,11 +10,12 @@ python3 -I for the tool) against the RobloxStub before it was kept; candidates t
 associative under exact best-length ties; the Python csv reader survives a quoted id with a newline). Every kept
 finding is fixed with a minimal change and one regression check labelled `R<n> (F<id>)` in the module's suite; each
 check was run against the a1c3185 modules and fails there (savedata_test FAIL 6 of 103, the others FAIL 1 each;
-worldclock R4c hangs the old code instead of failing, which is the bug). F14 is a design-level finding left open.
+worldclock R4c hangs the old code instead of failing, which is the bug). F14 was left open as design-level at
+review time and is fixed in the follow-up pass at the end of this file (savedata_test R9a-R9c).
 
 ## Verdict
 FIXES (overall): WorldClock and SaveData each had at least one `must`; all `must` and `should` findings except F14
-are fixed in this pass, so what Dev1 re-reviews is the fixed hunks, not the modules.
+are fixed in this pass (F14 in the follow-up pass below), so what Dev1 re-reviews is the fixed hunks, not the modules.
 
 | Module | Verdict | Decides it |
 |---|---|---|
@@ -25,7 +26,7 @@ are fixed in this pass, so what Dev1 re-reviews is the fixed hunks, not the modu
 | EncounterLog | ACCEPT WITH FIXES | F5 should (fixed, R7); N5 |
 | EncounterReplay | ACCEPT WITH FIXES | F3 should (fixed, R3); N6 |
 | WorldClock | FIXES | F4 must (fixed, R4a-c): three ways to hang Heartbeat, one from a save |
-| SaveData | FIXES | F8, F9, F12 must (fixed), F10, F11, F13 should (fixed), F14 should (open, design); N8 |
+| SaveData | FIXES | F8, F9, F12 must (fixed), F10, F11, F13 should (fixed), F14 should (fixed in the follow-up, R9a-c); N8 |
 | parity_report.py | ACCEPT WITH FIXES | F6, F7 should (fixed, R8a-b); N9 |
 | RobloxStub | ACCEPT | N10 (fidelity nits; three pre-existing analyze warnings, unchanged) |
 
@@ -47,7 +48,7 @@ File:line is in the reviewed a1c3185 file. "Fix asked" is the fix made unless ma
 | F11 | should | Server/SaveData.lua:262 | two load() calls in flight for one player (rejoin during a retrying load) both claim: two profile objects, _order = {4, 4}, the first caller holds a profile that is never saved | stub: failNext GetAsync, second load at +0.5 s; savedata_test R5d | an in-flight guard: the second call returns nil, "loading" |
 | F12 | must | Server/SaveData.lua:87 | set() accepts what the save refuses: set("bag.2", x) on an empty bag (sparse), set("x", 0/0), a function, or set("bag.1", nil) of two (a hole) each make every later save of the whole profile fail ("not JSON-safe") or, for the hole, store the array shifted; 50 coins set before were never written | stub: three set() shapes then save(); savedata_test R5e | set() validates the value (finite numbers, strings, booleans, string-keyed or 1..n tables, 32 deep) and the resulting parent keys, restores and errors at the call site |
 | F13 | should | Server/SaveData.lua:406, :291 | _lock.t is refreshed only by a write and autosave skips clean profiles, so a connected idle player's lock is stale after lockStaleS and a second SaveData (job-B) took it over at 1900 s (reported by the WSS_savedata notes) | stub: load, startAutosave, advance 1900 with no set(), job-B load returned "loaded"; savedata_test R6 | the autosave tick force-saves a clean locked profile ("heartbeat") when now - savedAt >= lockStaleS/2; 2 saves in 1900 s, job-B now gets "locked" |
-| F14 | should (open) | Server/SaveData.lua:391, :162 | flushAll("close") is sequential and each profile pays the budget wait (1+2+4+8+16 = 31 s) plus the retries (15 s) twice (save, release); three dirty profiles under a zero budget took 276 s of fake time and saved 0; BindToClose allows 30 s | stub: budget = 0 for 1000 s, flushAll on three dirty profiles | design-level, not changed: run the saves in parallel (task.spawn + a counter), skip _waitBudget and cap retries on "close", and refuse new loads after flushAll started (a load finishing after close would hold a lock for lockStaleS) |
+| F14 | should | Server/SaveData.lua:391, :162 | flushAll("close") is sequential and each profile pays the budget wait (1+2+4+8+16 = 31 s) plus the retries (15 s) twice (save, release); three dirty profiles under a zero budget took 276 s of fake time and saved 0; BindToClose allows 30 s | stub: budget = 0 for 1000 s, flushAll on three dirty profiles; savedata_test R9a-R9c | fixed (follow-up pass): flushAll marks the service closing (load returns nil, "closing", also for a load that was in flight), runs one task.spawn per profile and waits on a counter, _call skips _waitBudget and caps attempts at opts.closeRetries (default 1) with opts.closeBackoffS (default 0.5) while closing, then releases every lock; returns saved, failed. R9a: the same three profiles now flush in 0.00 s of fake time (0 saved, 3 failed, honestly reported); R9b: a load after flushAll is nil, "closing"; R9c: with budget all three save and every stored _lock is nil |
 | N1 | nit | Shared/TackleBox.lua:271, :320 | items() and serialize() hand out the live item table (data by reference, shape copied only on place); mutating items(box)[1].item.shape breaks check() | snippet | copy the item in items() or document that callers must not mutate |
 | N2 | nit | Shared/SpeciesTable.lua:216 | spawnWeight(id, NaN, d) returns 1 and spawnWeight(id, t, NaN) skips the depth gate (comparisons with NaN are false) | snippet | return 0 when either input is not finite |
 | N3 | nit | Shared/GameData.lua:103 | priceFor(trout, 0.4, 1e308) returns inf (isNum passes, the product overflows); an inf coin value would now be refused by profile:set (F12) rather than silently poison the save | snippet | clamp the product or error on a non-finite result |
@@ -132,4 +133,29 @@ File:line is in the reviewed a1c3185 file. "Fix asked" is the fix made unless ma
 - parity_report.py reads UTF-8 with or without a BOM; exit 2 on a non-object record.
 
 ## Reply line for the Coordinator
-REVIEW cloud_modules a1c3185 by Cloud (CLOUD): FIXES; F4, F8, F9, F12 must (fixed), F1-F3, F5-F7, F10, F11, F13 should (fixed), F14 should (design, open: parallel flushAll); N1-N10 nits; suites 15/15 (run_all PASS, 560 checks in the ten reviewed suites, 15 new R checks that fail on a1c3185); design/reviews/cloud_modules_review_Cloud.md
+REVIEW cloud_modules a1c3185 by Cloud (CLOUD): FIXES; F4, F8, F9, F12 must (fixed), F1-F3, F5-F7, F10, F11, F13 should (fixed), F14 should (fixed in the follow-up pass: parallel flushAll, R9a-c); N1-N10 nits (see the follow-up pass); suites 15/15 (run_all PASS, 560 checks in the ten reviewed suites, 15 new R checks that fail on a1c3185); design/reviews/cloud_modules_review_Cloud.md
+
+## Follow-up pass (Cloud, 2026-10-08): F14 and the nits
+Same method: each change is minimal and carries one labelled check that was run against the pre-change module
+and fails there (noted per item). Nothing public was renamed; flushAll gained a second return value (failed),
+which a caller taking one value never sees.
+
+| Id | Fixed | Change | Check (suite) |
+|---|---|---|---|
+| F14 | yes | flushAll: `_closing` flag (load -> nil, "closing", also for a load in flight at either DataStore call), one task.spawn per profile + a done counter, _call skips the budget wait and uses opts.closeRetries (1) / opts.closeBackoffS (0.5) while closing; returns saved, failed | R9a (276.00 s -> 0.00 s of fake time under budget 0), R9b, R9c (savedata_test) |
+| N1 | yes | TackleBox.items() returns a copy per entry (shape by value, `data` by reference); serialize() documents the same sharing | N1 (tacklebox_test): mutating items(box)[1].item.shape no longer breaks check() |
+| N2 | yes | SpeciesTable.spawnWeight returns 0 for a NaN or infinite time or depth (isNum moved above it) | N2 (speciestable_test) |
+| N3 | yes | GameData.priceFor errors when the product overflows to inf (a finite 1e308 kg; inf itself was already refused by isNum) | N3 (gamedata_test) |
+| N4 | already | the CatchLog header was rewritten in the review pass; nothing left | none |
+| N5 | part | EncounterLog fightS falls back to the finish time when the Caught / Snap / GiveUp cue was not logged as an event. Not done: a cap or abandon() for log.active (a fish that despawns without finish): that needs the FishPool despawn hook and a design decision, so it stays in the WSP note | N5 (encounterlog_test) |
+| N6 | yes | EncounterReplay.deepEqual treats two NaN leaves as equal; deserialize refuses entries given as a map instead of yielding an empty tape | N6a, N6b (encounterreplay_test) |
+| N7 | yes | WorldClock: a `waveNow` field ramps toward WAVE_M[weather] at the rain's pace from wherever it was, so no weather change jumps the surface and rain reaches 0.1 (serialize/deserialize carry it; a save without it starts at its weather's amplitude); new()'s opts are kept on the clock (`_opts`) so advance() and waveAmplitudeM() use them when not handed opts | N7a, N7b (worldclock_test) |
+| N8 | part | profile:get("") errors "empty path" like set() does (read profile.data for the whole table); the clock-skew caveat is in the header (lockStaleS stays 30 min). Not changed: `now` is still taken before the retries (a lag of up to 46 s against an 1800 s stale window changes nothing) | N8 (savedata_test) |
+| N9 | yes | parity_report.py: a "nan" / "inf" cell is an InputError (exit 2); a boolean or non-finite band edge is refused | N9 (parity_report_test) |
+| N10 | part | RobloxStub: a null array element is a nil hole at its index like Roblox's JSONDecode (documented at the decoder: # of such a table is a border); "1-2" is a JSON error (mantissa and exponent matched apart); Signal.Once disconnects after one Fire; luau-analyze clean under both solvers (the three Instance.new warnings were a type cycle through the __index closure's rawget, cured with a cast; the other new-solver errors were missing return and self annotations). Not changed: task.spawn stays synchronous, which the suites rely on | N10a, N10b, N10c (robloxstub_test) |
+
+Run on 2026-10-08: run_all PASS (18 suites: evidenceboard_test, schedule_test and ccr_digest_test are other agents' new suites);
+savedata_test 107, tacklebox_test 72, speciestable_test 54, gamedata_test 46, encounterlog_test 69, encounterreplay_test 68,
+worldclock_test 42, robloxstub_test 36, parity_report_test 34. Every R9 and N check was also run against the HEAD (df2ab2b)
+modules, stub and parity report: all 15 fail there (R9a reports 276.00 s). luau-analyze (default solver) is clean on every
+module under src/ and on the stub; the stub is also clean under --solver=old.

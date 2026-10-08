@@ -30,6 +30,8 @@ export type Clock = {
 	weatherLeftS: number, -- real seconds until the next weather roll
 	rain: number, -- 0..1 target intensity for the current weather
 	rainNow: number, -- 0..1 smoothed intensity the client shows
+	waveNow: number, -- metres, the smoothed wave amplitude (ramps toward WAVE_M[weather], read capped)
+	_opts: { [string]: any }?, -- the opts given to new(), so advance() and waveAmplitudeM() need not be handed them again
 }
 
 -- Defaults; everything here is a placeholder until the demo recordings fix the real pacing (UNTUNED).
@@ -53,7 +55,7 @@ local TRANSITIONS: { [Weather]: { [Weather]: number } } = {
 }
 WorldClock.TRANSITIONS = TRANSITIONS
 
--- Rain intensity per weather and the wave amplitude it drives (metres, before the cap).
+-- Rain intensity per weather and the wave amplitude each weather ramps toward (metres, before the cap).
 local RAIN: { [Weather]: number } = { clear = 0, overcast = 0, rain = 0.8 }
 local WAVE_M: { [Weather]: number } = { clear = 0.02, overcast = 0.05, rain = 0.1 }
 WorldClock.RAIN = RAIN
@@ -85,6 +87,8 @@ function WorldClock.new(opts: { [string]: any }?, rng: any?): Clock
 		weatherLeftS = WorldClock._rollLength(o, rng),
 		rain = 0,
 		rainNow = 0,
+		waveNow = WAVE_M.clear,
+		_opts = o,
 	}
 	return clock
 end
@@ -123,11 +127,11 @@ function WorldClock.timeOfDay(clock: Clock): number
 	return clock.timeH
 end
 
--- Advance by dt real seconds: the hour, the day counter, the weather timer and the rain ramp.
--- Returns the number of weather changes that happened (0 or 1 per call for small dt).
+-- Advance by dt real seconds: the hour, the day counter, the weather timer, the rain and wave ramps.
+-- opts defaults to what new() was given. Returns the number of weather changes (0 or 1 for small dt).
 function WorldClock.advance(clock: Clock, dt: number, rng: any?, opts: { [string]: any }?): number
 	assert(finite(dt) and dt >= 0, "WorldClock.advance: dt must be a finite number >= 0")
-	local o = opts or {}
+	local o = opts or clock._opts or {}
 	local D = WorldClock.DEFAULTS
 	-- time of day (whole days by arithmetic, not a loop: an infinite or huge dt must never hang Heartbeat)
 	local hours = dt / clock.dayLengthS * 24
@@ -162,6 +166,15 @@ function WorldClock.advance(clock: Clock, dt: number, rng: any?, opts: { [string
 		clock.rainNow = math.min(clock.rain, clock.rainNow + step)
 	elseif clock.rainNow > clock.rain then
 		clock.rainNow = math.max(clock.rain, clock.rainNow - step)
+	end
+	-- wave ramp toward the weather's amplitude at the rain's pace (the whole clear..rain swing over
+	-- RainRampS), from wherever it was: the surface never jumps at any weather change
+	local waveTarget = WAVE_M[clock.weather]
+	local waveStep = (WAVE_M.rain - WAVE_M.clear) * step
+	if clock.waveNow < waveTarget then
+		clock.waveNow = math.min(waveTarget, clock.waveNow + waveStep)
+	elseif clock.waveNow > waveTarget then
+		clock.waveNow = math.max(waveTarget, clock.waveNow - waveStep)
 	end
 	return changes
 end
@@ -198,14 +211,12 @@ function WorldClock.setTime(clock: Clock, timeH: number)
 	clock.timeH = timeH
 end
 
--- Wave amplitude in metres for the water surface, never above WaveMaxM (pool fish must stay visible).
+-- Wave amplitude in metres for the water surface (the ramped waveNow), never above WaveMaxM (pool fish
+-- must stay visible). opts defaults to what new() was given.
 function WorldClock.waveAmplitudeM(clock: Clock, opts: { [string]: any }?): number
-	local cap = (opts and opts.WaveMaxM) or WorldClock.DEFAULTS.WaveMaxM
-	local base = WAVE_M[clock.weather]
-	-- rain ramps the wave with the rain so the surface does not jump at a weather change
-	local calm = WAVE_M.clear
-	local v = if clock.weather == "rain" then calm + (base - calm) * clock.rainNow else base
-	return math.min(v, cap)
+	local o: { [string]: any } = opts or clock._opts or {}
+	local cap = o.WaveMaxM or WorldClock.DEFAULTS.WaveMaxM
+	return math.min(clock.waveNow, cap)
 end
 
 -- The combined bite multiplier for the current phase and weather.
@@ -242,6 +253,7 @@ function WorldClock.serialize(clock: Clock): { [string]: any }
 		weatherLeftS = clock.weatherLeftS,
 		rain = clock.rain,
 		rainNow = clock.rainNow,
+		waveNow = clock.waveNow,
 	}
 end
 
@@ -256,6 +268,7 @@ function WorldClock.deserialize(t: { [string]: any }): Clock
 	assert(t.weatherLeftS == nil or (finite(t.weatherLeftS) and t.weatherLeftS >= 0), "WorldClock.deserialize: bad weatherLeftS")
 	assert(t.rain == nil or (finite(t.rain) and t.rain >= 0 and t.rain <= 1), "WorldClock.deserialize: bad rain")
 	assert(t.rainNow == nil or (finite(t.rainNow) and t.rainNow >= 0 and t.rainNow <= 1), "WorldClock.deserialize: bad rainNow")
+	assert(t.waveNow == nil or (finite(t.waveNow) and t.waveNow >= 0 and t.waveNow <= 1), "WorldClock.deserialize: bad waveNow")
 	return {
 		timeH = t.timeH,
 		dayN = t.dayN,
@@ -264,6 +277,7 @@ function WorldClock.deserialize(t: { [string]: any }): Clock
 		weatherLeftS = t.weatherLeftS or WorldClock.DEFAULTS.WeatherMinS,
 		rain = t.rain or RAIN[t.weather :: Weather],
 		rainNow = t.rainNow or 0,
+		waveNow = t.waveNow or WAVE_M[t.weather :: Weather], -- a save from before waveNow starts at its weather's amplitude
 	}
 end
 

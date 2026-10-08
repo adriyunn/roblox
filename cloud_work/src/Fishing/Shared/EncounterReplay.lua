@@ -40,9 +40,10 @@ function EncounterReplay.deepCopy(v: any): any
 	return out
 end
 
--- Structural equality: same keys both ways and equal leaves; { 1, 2 } ~= { a = 1, b = 2 }.
+-- Structural equality: same keys both ways and equal leaves; { 1, 2 } ~= { a = 1, b = 2 }. Two NaN
+-- leaves count as equal (NaN never equals itself, which made every tape holding one mismatch).
 function EncounterReplay.deepEqual(a: any, b: any): boolean
-	if a == b then
+	if a == b or (a ~= a and b ~= b) then
 		return true
 	end
 	if typeof(a) ~= "table" or typeof(b) ~= "table" then
@@ -127,6 +128,11 @@ function EncounterReplay.deserialize(tbl: any): Tape
 	end
 	assert(typeof(tbl.t0) == "number", "EncounterReplay.deserialize: t0 must be a number")
 	assert(typeof(tbl.entries) == "table", "EncounterReplay.deserialize: entries must be an array")
+	local keyCount = 0
+	for _ in tbl.entries do
+		keyCount += 1
+	end
+	assert(keyCount == #tbl.entries, "EncounterReplay.deserialize: entries must be an array (1..n), not a map")
 	local entries: { Entry } = {}
 	local lastT = -math.huge
 	for i, raw in ipairs(tbl.entries) do

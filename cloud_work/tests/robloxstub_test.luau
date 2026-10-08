@@ -32,6 +32,16 @@ T.eq(back.g, 1.5, "JSON round-trip float")
 T.eq(R.HttpService:JSONEncode({}), "[]", "empty table encodes as []")
 T.eq(R.HttpService:JSONDecode("null"), nil, "null decodes to nil")
 T.throws(function() R.HttpService:JSONEncode({ [1.5] = 1 }) end, "non-string key", "non-string keys are refused")
+-- N10: JSON fidelity and Signal.Once
+local holes = R.HttpService:JSONDecode("[1,null,3]")
+T.check(holes[1] == 1 and holes[2] == nil and holes[3] == 3, "N10a: a null inside an array leaves a nil hole at its index, as Roblox does (was: {1, 3}, later elements shifted)")
+T.throws(function() R.HttpService:JSONDecode("1-2") end, "JSON", "N10b: \"1-2\" is a JSON error (was: nil without an error)")
+local onceSig = Stub.Signal.new()
+local onceFired = 0
+onceSig:Once(function() onceFired += 1 end)
+onceSig:Fire()
+onceSig:Fire()
+T.eq(onceFired, 1, "N10c: Signal.Once fires once then disconnects (was: every Fire)")
 
 -- Vector3
 local V3 = R.Vector3

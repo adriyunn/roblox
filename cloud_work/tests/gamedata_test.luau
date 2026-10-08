@@ -63,6 +63,7 @@ T.eq(GameData.priceFor("trout", 0.70, 1.0), GameData.priceFor("trout", 0.55, 1.0
 T.eq(GameData.priceFor("minnow", 0.06, SpeciesTable.weightFor("minnow", 0.06)), 1, "a median minnow rounds to 0 but sells for the minimum 1")
 T.throws(function() GameData.priceFor("salmon", 0.4, 1) end, "unknown species", "priceFor refuses an unknown species")
 T.throws(function() GameData.priceFor("trout", 0.4, -1) end, "must be numbers >= 0", "priceFor refuses a negative weight")
+T.throws(function() GameData.priceFor("trout", 0.4, 1e308) end, "overflows", "N3: a 1e308 kg weight errors at the call site (was: inf coins returned; an infinite weight was already refused)")
 
 -- sellTotal: the calibration
 local four = {}

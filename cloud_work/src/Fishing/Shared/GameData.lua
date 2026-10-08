@@ -94,13 +94,18 @@ function GameData.sizeBonus(speciesId: string, lengthM: number): number
 	return 1 - (1 - GameData.BONUS_MIN) * f
 end
 
--- Sell price in whole coins: pricePerKg * weightKg * sizeBonus, rounded, never below 1.
+-- Sell price in whole coins: pricePerKg * weightKg * sizeBonus, rounded, never below 1. Errors on a
+-- non-finite input and on a product that overflows to inf (a weight near 1e308), so an infinite coin
+-- value never reaches a profile.
 function GameData.priceFor(speciesId: string, lengthM: number, weightKg: number): number
 	if not isNum(lengthM) or not isNum(weightKg) or lengthM < 0 or weightKg < 0 then
 		error("GameData.priceFor: lengthM and weightKg must be numbers >= 0")
 	end
 	local row = SpeciesTable.get(speciesId)
 	local coins = math.floor(row.pricePerKg * weightKg * GameData.sizeBonus(speciesId, lengthM) + 0.5)
+	if not isNum(coins) then
+		error(string.format("GameData.priceFor: the price of %s at %g kg overflows", speciesId, weightKg))
+	end
 	return math.max(1, coins)
 end
 

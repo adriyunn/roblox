@@ -61,9 +61,12 @@ def _num(value):
     if isinstance(value, bool):
         raise InputError(f"boolean where a number was expected: {value!r}")
     try:
-        return float(value)
+        f = float(value)
     except (TypeError, ValueError) as exc:
         raise InputError(f"not a number: {value!r}") from exc
+    if not math.isfinite(f):  # "nan" and "inf" parse as floats; a median of inf would then fail a band with a confusing row
+        raise InputError(f"non-finite number: {value!r}")
+    return f
 
 
 def _normalise(row: dict, where: str) -> dict:
@@ -152,7 +155,8 @@ def load_bands(path: Path | None) -> dict:
         for metric, rng in metrics.items():
             if metric not in NUMERIC:
                 raise InputError(f"{path}: unknown metric {metric!r} (numeric fields: {', '.join(sorted(NUMERIC))})")
-            if not (isinstance(rng, list) and len(rng) == 2 and all(isinstance(x, (int, float)) for x in rng) and rng[0] <= rng[1]):
+            # bool is an int subclass in Python and json accepts NaN/Infinity: both are refused as band edges
+            if not (isinstance(rng, list) and len(rng) == 2 and all(isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x) for x in rng) and rng[0] <= rng[1]):
                 raise InputError(f"{path}: band {mode}.{metric} must be [lo, hi] with lo <= hi, got {rng!r}")
     return bands
 

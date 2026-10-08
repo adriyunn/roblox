@@ -435,5 +435,36 @@ do -- R6 (F13): an idle profile heartbeats so its lock stays live (reported by t
 	local prof, why = other:load(p)
 	T.check(prof == nil and why == "locked" and sd:stats().saves == 2 and RR.dataStores.stores[STORE]["u25"]._lock.jobId == "job-A", "R6 (F13): a clean profile is heartbeat-saved every lockStaleS/2 (2 saves in 1900 s) so another server still sees a live lock (was: taken over)")
 end
+do -- R9a, R9b (F14): flushAll must fit BindToClose's 30 s whatever the store does, then refuse new loads
+	local RR, sd = fresh()
+	for i, userId in { 26, 27, 28 } do
+		local prof = sd:load(RR.Players:addFake(userId)) :: any
+		prof:set("coins", i)
+	end
+	RR.dataStores.budget = 0 -- the store throttles every request from here on
+	local t0 = RR.clock.now
+	local saved, failed = sd:flushAll("close")
+	local tookS = RR.clock.now - t0
+	T.check(tookS <= 5 and saved == 0 and failed == 3, string.format("R9a (F14): three dirty profiles under a zero budget flush in %.2f s of fake time, 0 saved, 3 failed (was: 276 s of sequential budget waits and retries)", tookS))
+	local prof, why = sd:load(RR.Players:addFake(29))
+	T.check(prof == nil and why == "closing" and #sd:loadedUserIds() == 0, "R9b (F14): a load after flushAll returns nil, closing (was: a profile tracked and locked after the server closed)")
+end
+do -- R9c (F14): the normal close saves everything and leaves no lock behind
+	local RR, sd = fresh()
+	for i, userId in { 30, 31, 32 } do
+		local prof = sd:load(RR.Players:addFake(userId)) :: any
+		prof:set("coins", i * 10)
+	end
+	local saved, failed = sd:flushAll("close")
+	local st = RR.dataStores.stores[STORE]
+	T.check(saved == 3 and failed == 0 and st.u30.coins == 10 and st.u31.coins == 20 and st.u32.coins == 30 and st.u30._lock == nil and st.u31._lock == nil and st.u32._lock == nil and #sd:loadedUserIds() == 0, "R9c (F14): a normal flushAll with budget saves all three and releases every lock (stored _lock is nil)")
+end
+do -- N8: get("") is a programmer error, not the whole data table
+	local RR, sd = fresh()
+	local prof = sd:load(RR.Players:addFake(33)) :: any
+	T.throws(function()
+		prof:get("")
+	end, "empty path", "N8: profile:get(\"\") errors like set(\"\") does (was: returned the whole data table)")
+end
 
 T.finish()

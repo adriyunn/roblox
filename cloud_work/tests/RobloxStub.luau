@@ -143,8 +143,15 @@ local function jsonDecode(s: string): any
 				pos += 1
 				return arr
 			end
+			local i = 0
 			while true do
-				table.insert(arr, parseValue())
+				i += 1
+				local v = parseValue()
+				if v ~= nil then
+					-- a null element leaves a nil hole at its index, as Roblox's JSONDecode does ([1,null,3] ->
+					-- arr[1] = 1, arr[3] = 3; #arr is then a border, so count keys rather than rely on it)
+					arr[i] = v
+				end
 				skip()
 				local d = s:sub(pos, pos)
 				pos += 1
@@ -165,10 +172,18 @@ local function jsonDecode(s: string): any
 			pos += 4
 			return nil
 		else
-			local numStr = s:match("^-?%d+%.?%d*[eE]?[-+]?%d*", pos)
+			-- the mantissa and the exponent are matched apart: one loose pattern took "1-2" as a number
+			-- and handed back nil without an error
+			local numStr = s:match("^-?%d+%.?%d*", pos)
 			assert(numStr and #numStr > 0, "JSON: unexpected character at " .. pos)
+			local exp = s:match("^[eE][-+]?%d+", pos + #numStr)
+			if exp then
+				numStr ..= exp
+			end
+			local n = tonumber(numStr)
+			assert(n ~= nil, "JSON: bad number '" .. numStr .. "' at " .. pos)
 			pos += #numStr
-			return tonumber(numStr)
+			return n
 		end
 	end
 	local v = parseValue()
@@ -183,12 +198,12 @@ Stub.jsonDecode = jsonDecode
 -- ---------------------------------------------------------------- Vector3
 export type Vector3 = { X: number, Y: number, Z: number, Magnitude: number, Unit: any }
 local V3 = {}
-V3.__index = function(self: any, k: string)
+V3.__index = function(self: any, k: string): any
 	if k == "Magnitude" then
 		return math.sqrt(self.X * self.X + self.Y * self.Y + self.Z * self.Z)
 	elseif k == "Unit" then
 		local m = self.Magnitude
-		return m > 0 and V3.new(self.X / m, self.Y / m, self.Z / m) or V3.new(0, 0, 0)
+		return if m > 0 then V3.new(self.X / m, self.Y / m, self.Z / m) else V3.new(0, 0, 0)
 	end
 	return (V3 :: any)[k]
 end
@@ -234,9 +249,18 @@ function Signal:Connect(fn: (...any) -> ())
 	end
 	return conn
 end
-Signal.Once = Signal.Connect
-function Signal:Fire(...: any)
-	for _, fn in table.clone(self._handlers) do
+-- Once: the handler runs for the first Fire only, then its connection is dropped (like Roblox).
+function Signal:Once(fn: (...any) -> ())
+	local conn: any
+	conn = self:Connect(function(...: any)
+		conn:Disconnect()
+		fn(...)
+	end)
+	return conn
+end
+function Signal.Fire(self: any, ...: any)
+	local handlers: { (...any) -> () } = table.clone(self._handlers)
+	for _, fn in handlers do
 		fn(...)
 	end
 end
@@ -246,12 +270,16 @@ end
 Stub.Signal = Signal
 
 -- ---------------------------------------------------------------- Instance (attributes, tree, Destroy)
+-- Instance holds the methods; InstanceMeta is the metatable. The cast at the rawget breaks a type
+-- cycle (the closure reads Instance before its methods exist) that otherwise makes the new solver
+-- type every Instance.new call inside Stub.new as unknown.
 local Instance = {}
-Instance.__index = function(self: any, k: string)
-	local v = rawget(Instance, k)
+local InstanceMeta = {}
+InstanceMeta.__index = function(self: any, k: string): any
+	local v = rawget(Instance :: any, k)
 	if v ~= nil then return v end
 	-- child lookup by name, like Roblox
-	for _, c in rawget(self, "_children") do
+	for _, c in rawget(self, "_children") or {} do
 		if c.Name == k then return c end
 	end
 	return nil
@@ -265,7 +293,7 @@ function Instance.new(className: string, parent: any?): any
 		_attributes = {},
 		_attrChanged = Signal.new(),
 		_destroyed = false,
-	}, Instance)
+	}, InstanceMeta)
 	if parent then (inst :: any).Parent = parent; table.insert(parent._children, inst) end
 	return inst
 end
@@ -277,13 +305,13 @@ function Instance:GetAttribute(name: string): any return self._attributes[name] 
 function Instance:GetAttributes(): { [string]: any } return table.clone(self._attributes) end
 function Instance:GetAttributeChangedSignal(_name: string) return self._attrChanged end
 function Instance:GetChildren() return table.clone(self._children) end
-function Instance:FindFirstChild(name: string)
+function Instance:FindFirstChild(name: string): any
 	for _, c in self._children do if c.Name == name then return c end end
 	return nil
 end
-function Instance:WaitForChild(name: string) return self:FindFirstChild(name) end
+function Instance:WaitForChild(name: string): any return self:FindFirstChild(name) end
 function Instance:IsA(className: string): boolean return self.ClassName == className end
-function Instance:Destroy()
+function Instance.Destroy(self: any)
 	self._destroyed = true
 	if self.Parent then
 		local i = table.find(self.Parent._children, self)
@@ -308,12 +336,13 @@ function Stub.new()
 
 	-- the fake clock: R.task.wait advances it; scheduled callbacks run in time order
 	local clock = { now = 0 }
-	local queue: { { at: number, fn: () -> (), seq: number } } = {}
+	type Scheduled = { at: number, fn: () -> (), seq: number }
+	local queue: { Scheduled } = {}
 	local seq = 0
 	local function schedule(at: number, fn: () -> ())
 		seq += 1
 		table.insert(queue, { at = at, fn = fn, seq = seq })
-		table.sort(queue, function(a, b)
+		table.sort(queue, function(a: Scheduled, b: Scheduled): boolean
 			if a.at == b.at then return a.seq < b.seq end
 			return a.at < b.at
 		end)
@@ -360,8 +389,8 @@ function Stub.new()
 	Players.PlayerAdded = Signal.new()
 	Players.PlayerRemoving = Signal.new()
 	Players._players = {}
-	function Players:GetPlayers() return table.clone(self._players) end
-	function Players:addFake(userId: number, name: string?)
+	function Players.GetPlayers(self: any) return table.clone(self._players) end
+	function Players.addFake(self: any, userId: number, name: string?)
 		local p = Instance.new("Player")
 		p.Name = name or ("Player" .. userId)
 		p.UserId = userId
@@ -370,7 +399,7 @@ function Stub.new()
 		self.PlayerAdded:Fire(p)
 		return p
 	end
-	function Players:removeFake(p: any)
+	function Players.removeFake(self: any, p: any)
 		local i = table.find(self._players, p)
 		if i then table.remove(self._players, i) end
 		self.PlayerRemoving:Fire(p)
@@ -503,7 +532,7 @@ function Stub.harness(name: string)
 		end
 		return H.check(same, label .. (same and "" or string.format("  (got %s, want %s)", tostring(a), tostring(b))))
 	end
-	function H.throws(fn: () -> (), pattern: string?, label: string)
+	function H.throws(fn: () -> ...any, pattern: string?, label: string)
 		local ok, err = pcall(fn)
 		local hit = not ok and (pattern == nil or tostring(err):find(pattern, 1, true) ~= nil)
 		return H.check(hit, label .. (hit and "" or ("  (got " .. tostring(err) .. ")")))

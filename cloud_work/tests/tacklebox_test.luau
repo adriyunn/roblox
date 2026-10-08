@@ -259,4 +259,14 @@ end
 T.eq(TackleBox.freeCells(fuzz), 48 - fuzzCells, "fuzz: free cells agree with the items' cell counts")
 T.eq(Stub.jsonEncode(TackleBox.serialize(TackleBox.deserialize(TackleBox.serialize(fuzz)))), Stub.jsonEncode(TackleBox.serialize(fuzz)), "fuzz: the final box round-trips")
 
+do -- N1: items() hands out copies, so a caller mutating a shape cannot break the grid invariant
+	local n1 = TackleBox.new(4, 4)
+	TackleBox.place(n1, { kind = "lure", key = "n1", shape = TackleBox.SHAPES.line2 }, 0, 1, 1)
+	local got = TackleBox.items(n1)[1]
+	got.item.shape[2][1] = 3
+	got.x = 4
+	local okCheck = pcall(TackleBox.check, n1)
+	T.check(okCheck and TackleBox.at(n1, 2, 1) ~= nil and TackleBox.at(n1, 4, 1) == nil, "N1: mutating items(box)[1].item.shape and .x leaves the box intact and check() true (was: the live shape was shared, check() errored)")
+end
+
 T.finish()

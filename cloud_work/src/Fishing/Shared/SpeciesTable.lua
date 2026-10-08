@@ -44,6 +44,10 @@ for _, k in SpeciesTable.BRAIN_KEYS do
 	BRAIN_KEY_SET[k] = true
 end
 
+local function isNum(v: any): boolean
+	return typeof(v) == "number" and v == v and math.abs(v) < math.huge
+end
+
 local PERIODS = { "dawn", "day", "dusk", "night" }
 local BOUNDARIES = { 5, 8, 17, 20 } -- dawn 5-8, day 8-17, dusk 17-20, night otherwise
 SpeciesTable.BLEND_H = 0.5 -- linear blend this many hours either side of each boundary
@@ -214,10 +218,11 @@ local function periodAt(t: number): string
 	return "dusk"
 end
 
--- Spawn weight 0..1 for a time of day (hours, 0..24, wraps) and depth; 0 outside the depth range.
+-- Spawn weight 0..1 for a time of day (hours, 0..24, wraps) and depth; 0 outside the depth range and
+-- 0 for a NaN or infinite input (which would slip past every comparison below).
 function SpeciesTable.spawnWeight(id: string, timeOfDay: number, depthM: number): number
 	local row = SpeciesTable.get(id)
-	if depthM < row.spawn.depthM.min or depthM > row.spawn.depthM.max then
+	if not isNum(timeOfDay) or not isNum(depthM) or depthM < row.spawn.depthM.min or depthM > row.spawn.depthM.max then
 		return 0
 	end
 	local t = timeOfDay % 24
@@ -244,10 +249,6 @@ function SpeciesTable.lureMultiplier(id: string, lureId: string): number
 end
 
 -- ---------------------------------------------------------------- validation
-local function isNum(v: any): boolean
-	return typeof(v) == "number" and v == v and math.abs(v) < math.huge
-end
-
 -- Checks every row (or the given rows table); errors naming the row and field. Returns true.
 function SpeciesTable.validate(rows: { [string]: Row }?): boolean
 	local all = rows or SpeciesTable.ROWS

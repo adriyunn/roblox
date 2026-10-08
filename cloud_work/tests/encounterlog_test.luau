@@ -227,6 +227,12 @@ for _ in sampleCsv:gmatch("[^\n]+") do
 end
 T.eq(n, 21, "sample CSV: header + 20 rows")
 
+-- N5: fightS falls back to the finish time when the Caught / Snap / GiveUp cue was not logged as an event
+local n5log = EncounterLog.new()
+EncounterLog.start(n5log, "n5", { anglerId = 1, fishId = "f", speciesId = "trout", hookMode = "bed", t = 300 })
+EncounterLog.event(n5log, "n5", "Hooked", 310)
+T.eq(EncounterLog.finish(n5log, "n5", 330, "Caught").fightS, 20, "N5: finish(330, Caught) with no Caught event gives fightS = tEnd - Hooked = 20 (was nil)")
+
 print("-----BEGIN FIXTURE encounters_sample.csv-----")
 print(sampleCsv:sub(1, -2))
 print("-----END FIXTURE-----")

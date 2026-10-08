@@ -148,6 +148,12 @@ T.check(dE(nil, nil) and not dE(nil, {}), "deepEqual: nil vs nil, nil vs table")
 local copy = EncounterReplay.deepCopy({ a = { 1 } })
 T.check(copy.a[1] == 1 and dE(copy, { a = { 1 } }), "deepCopy copies nested values")
 
+-- N6: NaN leaves compare equal; entries given as a map are refused instead of yielding an empty tape
+T.check(dE({ x = 0 / 0 }, { x = 0 / 0 }) and not dE({ x = 0 / 0 }, { x = 1 }), "N6a: deepEqual treats two NaN leaves as equal (was: false, NaN never equals itself)")
+T.throws(function()
+	EncounterReplay.deserialize({ v = 1, t0 = 0, entries = { first = { t = 0, dir = "in", channel = "x" } } })
+end, "not a map", "N6b: deserialize refuses entries given as a map (was: an empty tape, silently)")
+
 -- ---------------------------------------------------------------- negative controls
 T.throws(function()
 	EncounterReplay.deserialize({ v = 2, t0 = 0, entries = {} })

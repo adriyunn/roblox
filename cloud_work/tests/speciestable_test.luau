@@ -180,4 +180,7 @@ T.eq(SpeciesTable.lureMultiplier("trout", "fly"), 1.5, "trout on a fly is x1.5")
 T.eq(SpeciesTable.lureMultiplier("trout", "nothing"), 1, "an unlisted lure falls back to default 1")
 T.eq(SpeciesTable.lureMultiplier("pike", "worm"), 0.6, "pike default is 0.6")
 
+-- N2: a NaN or infinite time or depth is a weight of 0, never a weight that slipped past the gates
+T.check(SpeciesTable.spawnWeight("trout", 0 / 0, 1.0) == 0 and SpeciesTable.spawnWeight("trout", 12, 0 / 0) == 0 and SpeciesTable.spawnWeight("trout", math.huge, 1.0) == 0 and SpeciesTable.spawnWeight("trout", 12, math.huge) == 0, "N2: spawnWeight with a NaN or infinite time or depth is 0 (was: 1 for a NaN time, the depth gate skipped for a NaN depth)")
+
 T.finish()

@@ -124,4 +124,19 @@ T.throws(function() WorldClock.deserialize({ v = 1, timeH = 7, dayN = 1, weather
 T.throws(function() WorldClock.new({ WeatherMinS = 0, WeatherMaxS = 0 }) end, "WeatherMinS", "R4b (F4) new refuses a zero weather length (advance looped forever on it)")
 T.throws(function() WorldClock.advance(WorldClock.new(), math.huge) end, "finite", "R4c (F4) advance refuses an infinite dt (on the old code this check hangs instead of failing)")
 
+-- N7: the wave ramps at every weather change (not only into rain) and new()'s opts are remembered
+local n7 = WorldClock.new({ RainRampS = 10 })
+WorldClock.setWeather(n7, "rain", 1000)
+WorldClock.advance(n7, 5)
+T.eq(n7.rainNow, 0.5, "N7b: advance() without opts uses new()'s RainRampS 10, 5 s = 0.5 (was: the default 20 gave 0.25)")
+WorldClock.advance(n7, 15)
+local inRain = WorldClock.waveAmplitudeM(n7)
+WorldClock.setWeather(n7, "overcast", 1000)
+local atChange = WorldClock.waveAmplitudeM(n7)
+WorldClock.advance(n7, 2.5)
+local midWay = WorldClock.waveAmplitudeM(n7)
+WorldClock.advance(n7, 10)
+local settled = WorldClock.waveAmplitudeM(n7)
+T.check(math.abs(inRain - 0.1) < 1e-9 and atChange == inRain and midWay > 0.05 and midWay < inRain and math.abs(settled - 0.05) < 1e-9, string.format("N7a: rain -> overcast ramps the wave 0.1 -> %.3f -> 0.05 instead of jumping (was: 0.084 -> 0.05 at the change, and never 0.1 in rain)", midWay))
+
 T.finish()

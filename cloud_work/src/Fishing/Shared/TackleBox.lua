@@ -265,11 +265,13 @@ function TackleBox.at(box: Box, x: number, y: number): number?
 	return box.grid[cellKey(box, x, y)]
 end
 
--- Every placed item as {id, item, rot, x, y}, ordered by id.
+-- Every placed item as {id, item, rot, x, y}, ordered by id. Each entry is a copy (the shape by value,
+-- `data` by reference): a caller mutating what it got back cannot break the grid invariant.
 function TackleBox.items(box: Box): { Placed }
 	local out: { Placed } = {}
 	for _, p in box.placed do
-		table.insert(out, { id = p.id, item = p.item, rot = p.rot, x = p.x, y = p.y })
+		local item: Item = { kind = p.item.kind, key = p.item.key, shape = copyShape(p.item.shape), data = p.item.data }
+		table.insert(out, { id = p.id, item = item, rot = p.rot, x = p.x, y = p.y })
 	end
 	table.sort(out, function(a: Placed, b: Placed): boolean return a.id < b.id end)
 	return out
@@ -306,7 +308,8 @@ end
 export type SerializedItem = { id: number, kind: string, key: string, shape: Shape, rot: number, x: number, y: number, data: { [string]: any }? }
 export type Serialized = { w: number, h: number, nextId: number, items: { SerializedItem } }
 
--- A plain JSON-safe table of the whole box (items ordered by id).
+-- A plain JSON-safe table of the whole box (items ordered by id; shapes copied, `data` by reference,
+-- so encode it, do not edit it).
 function TackleBox.serialize(box: Box): Serialized
 	local items: { SerializedItem } = {}
 	for _, p in TackleBox.items(box) do

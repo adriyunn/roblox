@@ -17,13 +17,19 @@
 --     array, mixed keys) at the call site, and the save refuses anything HttpService:JSONEncode cannot
 --     encode, so one bad value cannot silently stop every later save.
 --   * Players.PlayerAdded -> sd:load(player) (on nil, "locked" | "loading": retry after a few seconds,
---     then kick; on nil, "left" the player is already gone); Players.PlayerRemoving ->
---     sd:onPlayerRemoving(player) (always, even while a load is still in flight); game:BindToClose(
---     function() sd:flushAll("close") end); sd:startAutosave() once at server start.
+--     then kick; on nil, "left" the player is already gone; on nil, "closing" the server is shutting
+--     down); Players.PlayerRemoving -> sd:onPlayerRemoving(player) (always, even while a load is still
+--     in flight); game:BindToClose(function() sd:flushAll("close") end); sd:startAutosave() once at
+--     server start. flushAll is terminal: it marks the service closing (every later load is refused),
+--     saves every dirty profile at once (one task.spawn each, no budget wait, opts.closeRetries
+--     attempts per DataStore call, default 1, opts.closeBackoffS between them, default 0.5 s), then
+--     releases every lock, so a throttled store cannot push three profiles past BindToClose's 30 s.
 --   * The key is "u<UserId>" (SaveData.keyFor). The stored record is the data table plus _v (schema),
 --     _lock = { jobId, t } and _savedAt; _lock and _savedAt are stripped from profile.data on load.
 --     Every write refreshes _lock.t; a clean profile gets a heartbeat save every lockStaleS/2 from the
---     autosave loop so an idle player's lock never looks stale to another server.
+--     autosave loop so an idle player's lock never looks stale to another server. The lock is a
+--     wall-clock timestamp: a server whose os.time runs more than lockStaleS behind another's can take
+--     a live lock, which is why lockStaleS stays large (30 min) and must not be shortened.
 --   * A read-only profile (newer schema, corrupt record, missing migration) plays from memory and is
 --     never written; the caller may tell the player their progress will not save this session.
 
@@ -39,6 +45,7 @@ export type Opts = {
 	storeName: string?, schemaVersion: number?, defaults: (() -> { [string]: any })?,
 	migrations: { [number]: (any) -> any }?, autosaveS: number?, maxRetries: number?, backoffS: number?,
 	backoffCapS: number?, lockStaleS: number?, budgetFloor: number?, maxBytes: number?,
+	closeRetries: number?, closeBackoffS: number?,
 }
 
 export type Profile = {
@@ -59,6 +66,7 @@ type Fields = {
 	_lockStaleS: number, _budgetFloor: number, _maxBytes: number, _jobId: string,
 	_profiles: { [number]: Profile }, _order: { number }, _autosaveGen: number, _stats: Stats,
 	_loading: { [number]: boolean }, _left: { [number]: boolean },
+	_closing: boolean, _closeRetries: number, _closeBackoffS: number,
 }
 
 local MAX_DEPTH = 32
@@ -125,10 +133,13 @@ local function makeProfile(player: any, key: string, data: { [string]: any }, re
 		readOnly = readOnly, reason = reason, locked = false, savedAt = nil, lastSaveReason = nil,
 		_changes = 0, _savedChanges = 0,
 	}
-	-- Reads a dot path ("gear.rod"); nil when any segment is missing.
+	-- Reads a dot path ("gear.rod"); nil when any segment is missing. An empty path is a programmer
+	-- error (it used to hand back the whole data table; read profile.data for that).
 	function p.get(self: Profile, path: string): any
+		local parts = splitPath(path)
+		assert(#parts > 0, "SaveData: empty path")
 		local node: any = self.data
-		for _, seg in splitPath(path) do
+		for _, seg in parts do
 			if typeof(node) ~= "table" then
 				return nil
 			end
@@ -213,6 +224,9 @@ function SaveData.new(deps: Deps, opts: Opts?): SaveData
 		_lockStaleS = o.lockStaleS or 1800,
 		_budgetFloor = o.budgetFloor or 5,
 		_maxBytes = o.maxBytes or 4000000,
+		_closeRetries = o.closeRetries or 1,
+		_closeBackoffS = o.closeBackoffS or 0.5,
+		_closing = false,
 		_jobId = jobId :: string,
 		_profiles = {},
 		_order = {},
@@ -249,9 +263,15 @@ function SaveData._waitBudget(self: SaveData, op: string)
 	end
 end
 
--- Runs one DataStore call with retries and doubling backoff on the injected task.wait.
+-- Runs one DataStore call with retries and doubling backoff on the injected task.wait. While the
+-- service is closing (flushAll) there is no budget wait, at most closeRetries attempts and a flat
+-- closeBackoffS between them: BindToClose gives every profile together 30 s.
 function SaveData._call(self: SaveData, op: string, key: string, fn: () -> any): (boolean, any)
-	self:_waitBudget(op)
+	local closing = self._closing
+	if not closing then
+		self:_waitBudget(op)
+	end
+	local maxAttempts = if closing then self._closeRetries else self._maxRetries
 	local attempt = 0
 	while true do
 		attempt += 1
@@ -259,13 +279,13 @@ function SaveData._call(self: SaveData, op: string, key: string, fn: () -> any):
 		if ok then
 			return true, res
 		end
-		if attempt >= self._maxRetries then
+		if attempt >= maxAttempts then
 			self._stats.failures += 1
 			self._deps.warn(string.format("SaveData: %s %s failed after %d attempts: %s", op, key, attempt, tostring(res)))
 			return false, res
 		end
 		self._stats.retries += 1
-		self._deps.task.wait(self:_backoff(attempt))
+		self._deps.task.wait(if closing then self._closeBackoffS else self:_backoff(attempt))
 	end
 end
 
@@ -350,14 +370,19 @@ end
 
 -- Loads (or creates) a player's profile and claims its session lock. Returns profile, reason where
 -- reason is "new" | "loaded" | "already-loaded" | "newer" | "corrupt" | "no-migration" (the last three
--- are read-only), or nil, "locked" | "loading" | "left" | "GetAsync failed: .." | "UpdateAsync failed: ..".
--- "locked" also covers a record another server wrote between our GetAsync and our claim (retry: the next
--- load reads it fresh); "loading" means a load for the same player is still in flight (retry); "left"
--- means onPlayerRemoving ran while this load waited, so the lock was given straight back.
+-- are read-only), or nil, "locked" | "loading" | "left" | "closing" | "GetAsync failed: .." |
+-- "UpdateAsync failed: ..". "locked" also covers a record another server wrote between our GetAsync and
+-- our claim (retry: the next load reads it fresh); "loading" means a load for the same player is still
+-- in flight (retry); "left" means onPlayerRemoving ran while this load waited, so the lock was given
+-- straight back; "closing" means flushAll has run (or started while this load waited): nothing is
+-- claimed after the server began shutting down, else the lock would outlive it for lockStaleS.
 function SaveData.load(self: SaveData, player: any): (Profile?, string)
 	local existing = self._profiles[player.UserId]
 	if existing then
 		return existing, "already-loaded"
+	end
+	if self._closing then
+		return nil, "closing"
 	end
 	local userId = player.UserId
 	if self._loading[userId] then
@@ -381,6 +406,8 @@ function SaveData._loadInner(self: SaveData, player: any): (Profile?, string)
 	end)
 	if not ok then
 		return nil, "GetAsync failed: " .. tostring(stored)
+	elseif self._closing then
+		return nil, "closing" -- flushAll began while GetAsync retried: claim nothing
 	end
 	local now = self._deps.clock()
 	local storedSavedAt: any = if typeof(stored) == "table" then stored._savedAt else nil
@@ -429,12 +456,14 @@ function SaveData._loadInner(self: SaveData, player: any): (Profile?, string)
 		return nil, "UpdateAsync failed: " .. tostring(err)
 	end
 	p.locked = true
-	if self._left[player.UserId] then
-		-- the player left while this load waited on the DataStore: no orphan profile, lock given back
+	if self._left[player.UserId] or self._closing then
+		-- the player left, or the server began closing, while this load waited on the DataStore: no
+		-- orphan profile, the lock is given straight back
+		local why = if self._closing then "closing" else "left"
 		self._left[player.UserId] = nil
 		p.locked = false
 		self:_unlock(p)
-		return nil, "left"
+		return nil, why
 	end
 	self:_track(p)
 	return p, if stored == nil then "new" else "loaded"
@@ -519,19 +548,42 @@ function SaveData.onPlayerRemoving(self: SaveData, player: any): (boolean, strin
 	return ok, why
 end
 
--- BindToClose: saves every dirty profile and releases every lock; returns the number saved.
-function SaveData.flushAll(self: SaveData, reason: string?): number
-	local saved = 0
-	for _, userId in table.clone(self._order) do
-		local p = self._profiles[userId]
-		if p then
-			if p:isDirty() and not p.readOnly and self:save(p.player, reason or "flush") then
-				saved += 1
+-- BindToClose: marks the service closing (every later load returns nil, "closing"), then saves every
+-- dirty profile and releases every lock with one task.spawn per profile, so no profile waits behind
+-- another's retries; _call skips the budget wait and caps attempts at closeRetries while closing.
+-- Returns when every worker is done: the number saved and the number of dirty profiles not saved
+-- (a save that failed, or a worker that errored). It is terminal: the service takes no new loads.
+function SaveData.flushAll(self: SaveData, reason: string?): (number, number)
+	self._closing = true
+	local ids = table.clone(self._order)
+	local saved, failed, done = 0, 0, 0
+	for _, userId in ids do
+		self._deps.task.spawn(function()
+			local ok, err = pcall(function()
+				local p = self._profiles[userId]
+				if p then
+					if p:isDirty() and not p.readOnly then
+						if self:save(p.player, reason or "flush") then
+							saved += 1
+						else
+							failed += 1
+						end
+					end
+					self:release(p.player)
+				end
+			end)
+			if not ok then
+				failed += 1
+				self._deps.warn(string.format("SaveData: flushAll of u%s errored: %s", tostring(userId), tostring(err)))
 			end
-			self:release(p.player)
-		end
+			done += 1
+		end)
 	end
-	return saved
+	while done < #ids do
+		-- the real task.spawn yields its worker at the first DataStore call; the stub's runs it to the end
+		self._deps.task.wait(0.05)
+	end
+	return saved, failed
 end
 
 -- Starts the autosave loop: every autosaveS, saves each dirty profile (task.delay rescheduling itself)

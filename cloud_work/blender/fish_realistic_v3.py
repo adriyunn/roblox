@@ -57,10 +57,10 @@ SPRITE = dict(side_w=512, side_h=192, icon=96, fill=0.92)
 # towards the tail, as on a real fish); height = step at a scale's free edge in metres.
 SCALES = {
     "carp": dict(cell=0.020, height=0.0030),      # large, cupped
-    "perch": dict(cell=0.0075, height=0.0012),    # medium, ctenoid
+    "perch": dict(cell=0.0065, height=0.0010),    # medium, ctenoid
     "trout": dict(cell=0.0040, height=0.00065),   # fine
     "pike": dict(cell=0.0085, height=0.0013),     # medium
-    "minnow": dict(cell=0.0018, height=0.00030),  # fine
+    "minnow": dict(cell=0.0015, height=0.00022),  # fine
 }
 NORMAL_AMP = 2.0          # tangent-space XY gain applied to the baked normal map (then renormalised)
 DIFFUSE_RIM = 0.22        # how much the scale rims darken the diffuse
@@ -1805,8 +1805,8 @@ def main(argv=None):
             print(f"{k:14s} {v['kind']:9s} {v['length_m']:.2f} m")
         return 0
     names = list(all_presets) if args.all else args.preset
-    if not names:
-        ap.error("give --all or at least one --preset NAME")
+    if not names and not args.sheet:
+        ap.error("give --all, at least one --preset NAME, or --sheet")
     for n in names:
         if n not in all_presets:
             ap.error(f"unknown preset '{n}'; known: {', '.join(all_presets)}")

@@ -267,21 +267,26 @@ def suite_threshold(test: Path) -> float | None:
 
 
 def run_one(work: Path, module: Module, m: Mutant, timeout: float) -> str:
-    """killed | survived | timeout | invalid for one mutant, run in its own copy of src/ + tests/."""
+    """killed | survived | timeout | invalid for one mutant, run in its own copy of src/ + tests/.
+    Only the exit code matters, so the suite's output is captured as bytes and never decoded (a mutant
+    of a codec can make a suite print raw bytes). A runner error counts as invalid and is reported."""
     d = Path(tempfile.mkdtemp(prefix="m_", dir=work))
     try:
         shutil.copytree(module.root / "src", d / "src")
         shutil.copytree(module.root / "tests", d / "tests")
         target = d / module.rel
         target.write_text(m.apply(module.src), encoding="utf-8")
-        cp = subprocess.run([LUAU_COMPILE, "--null", str(target)], capture_output=True, text=True)
+        cp = subprocess.run([LUAU_COMPILE, "--null", str(target)], capture_output=True)
         if cp.returncode != 0:
             return "invalid"
         try:
-            p = subprocess.run([LUAU, module.test.name], cwd=d / "tests", capture_output=True, text=True, timeout=timeout)
+            p = subprocess.run([LUAU, module.test.name], cwd=d / "tests", capture_output=True, timeout=timeout)
         except subprocess.TimeoutExpired:
             return "timeout"
         return "survived" if p.returncode == 0 else "killed"
+    except Exception as exc:  # noqa: BLE001  (one broken mutant must not abort the whole run)
+        print(f"  note: {module.rel.name}:{m.line} {m.op}: runner error, counted invalid: {exc}", file=sys.stderr)
+        return "invalid"
     finally:
         shutil.rmtree(d, ignore_errors=True)
 

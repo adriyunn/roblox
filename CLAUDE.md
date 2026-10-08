@@ -18,9 +18,15 @@ known only from transcripts.
 bash cloud_work/tests/run_all.sh
 ```
 Compiles every `.lua`/`.luau` at -O0/-O1/-O2, runs every `tests/*_test.luau` from its own folder
-under the Luau CLI, every `*_test.py` under `tests/` and `tools/` with `python3 -I`, and the LF
-check. It must end `run_all: PASS`. `luau-analyze <module>` must be clean for every file under
-`cloud_work/src/`. CI (`.github/workflows/luau-ci.yml`) runs the same on every push.
+under the Luau CLI, every `*_test.py` under `tests/` and `tools/` with `python3 -I`, the conventions
+linter (`tools/check_conventions.py`: the rules below, enforced), the quick mutation check
+(`tools/mutate.py --quick`: 12 mutants per module, at most 15 % may survive; a survivor that is
+equivalent code is declared in its suite with `-- mutate-max-survival: x (why)`), and the LF check.
+It must end `run_all: PASS`. `luau-analyze <module>` must be clean for every file under
+`cloud_work/src/` and for `tests/RobloxStub.luau`; CI (`.github/workflows/luau-ci.yml`) runs the
+same gate on every push and fails on any analyze error. A new module's name goes on
+`MUTATE_ADVISORY` in `run_all.sh` only while it is being written; take it off when its suite kills
+the quick mutants.
 
 The SessionStart hook (`.claude/hooks/session-start.sh`) installs the Luau CLI, `bpy` and Pillow in
 cloud sessions. If `luau` is missing, run `bash cloud_work/tools/setup_luau.sh`.

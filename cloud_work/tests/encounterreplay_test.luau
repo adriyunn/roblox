@@ -154,6 +154,14 @@ T.throws(function()
 	EncounterReplay.deserialize({ v = 1, t0 = 0, entries = { first = { t = 0, dir = "in", channel = "x" } } })
 end, "not a map", "N6b: deserialize refuses entries given as a map (was: an empty tape, silently)")
 
+-- M1-M3 (mutation checker, tools/mutate.py): serialize keeps dropped, every entry field is checked, equal times are in order
+-- Known equivalent mutant: Recorder.new's _head = 1 -> 2 only shifts where the ring starts, never its order.
+T.eq(EncounterReplay.serialize(rt).dropped, 2, "M1: serialize keeps the tape's dropped count")
+T.throws(function()
+	EncounterReplay.deserialize({ v = 1, t0 = 0, entries = { { dir = "in", channel = "x" } } })
+end, "bad entry", "M2: deserialize refuses an entry without t even when its channel is a string")
+T.eq(#EncounterReplay.deserialize({ v = 1, t0 = 0, entries = { { t = 1, dir = "in", channel = "a" }, { t = 1, dir = "out", channel = "b" } } }).entries, 2, "M3: two entries at the same time are in order")
+
 -- ---------------------------------------------------------------- negative controls
 T.throws(function()
 	EncounterReplay.deserialize({ v = 2, t0 = 0, entries = {} })

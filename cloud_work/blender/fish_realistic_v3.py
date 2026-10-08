@@ -56,13 +56,15 @@ SPRITE = dict(side_w=512, side_h=192, icon=96, fill=0.92)
 # circumference / cell; the pitch along the body shrinks with the local radius so scales get smaller
 # towards the tail, as on a real fish); height = step at a scale's free edge in metres.
 SCALES = {
-    "carp": dict(cell=0.020, height=0.00075),     # large, cupped
-    "perch": dict(cell=0.0075, height=0.00030),   # medium, ctenoid
-    "trout": dict(cell=0.0040, height=0.00018),   # fine
-    "pike": dict(cell=0.0085, height=0.00032),    # medium
-    "minnow": dict(cell=0.0018, height=0.00007),  # fine
+    "carp": dict(cell=0.020, height=0.0030),      # large, cupped
+    "perch": dict(cell=0.0075, height=0.0012),    # medium, ctenoid
+    "trout": dict(cell=0.0040, height=0.00065),   # fine
+    "pike": dict(cell=0.0085, height=0.0013),     # medium
+    "minnow": dict(cell=0.0018, height=0.00030),  # fine
 }
-RIDGE = dict(membrane=0.55, height=0.5, tip_taper=0.45)   # fin ray ridges relative to fin_th
+NORMAL_AMP = 2.0          # tangent-space XY gain applied to the baked normal map (then renormalised)
+DIFFUSE_RIM = 0.22        # how much the scale rims darken the diffuse
+RIDGE = dict(membrane=0.50, height=0.28, tip_taper=0.45)   # fin ray ridges relative to fin_th
 ROUGH = dict(back=0.22, belly=0.42, fin=0.65, iris=0.30, pupil=0.12, cornea=0.05, scale_edge=0.28)
 SWIM = dict(frames=30, fps=30, amp_deg=[0.0, 2.0, 3.6, 6.2, 10.4, 16.0, 25.0], lag_rad=0.6)
 BEND = dict(frames=(1, 15, 30), k=(-1, 0, 1), deg_per_bone=6.0, bones=(1, 2, 3, 4, 5))  # body1..peduncle
@@ -79,9 +81,13 @@ for _n in FISH_NAMES:
         if _f.get("rays", 0):
             _f["cols"] = 2 * _f["rays"] + 1
             if _f["kind"] in ("dorsal", "dorsal2", "anal"):
-                _f.setdefault("scallop", 0.07)
+                _f.setdefault("scallop", 0.045)
         _fins.append(_f)
     _p["fins"] = _fins
+    _pat = dict(_p["pattern"])
+    _pat["scale_strength"] = 0.0          # v3 paints scale rims from the baked height map instead
+    _pat["scale_var"] = 0.04
+    _p["pattern"] = _pat
     PRESETS3[_n] = _p
 
 PROP3 = {
@@ -333,11 +339,11 @@ def build_fish_material3(name, P):
     vz = nb.attr("vz")
     cm = nb.smooth(REGION_CORNEA - 0.5, REGION_CORNEA - 0.4, region)
     pm = nb.smooth(REGION_PUPIL - 0.5, REGION_PUPIL - 0.4, region)
-    col3 = nb.mix(cm, col, (0.80, 0.88, 0.94))
+    col3 = nb.mix(cm, col, (0.55, 0.66, 0.78))
     col3 = nb.mix(pm, col3, (0.012, 0.012, 0.014))
     nb.links.new(col3, bsdf.inputs["Base Color"])
     # alpha: v2 (0.85 fins, 1 elsewhere) with 0.35 on the cornea
-    alpha3 = nb.math("ADD", nb.math("MULTIPLY", alpha, nb.math("SUBTRACT", 1.0, cm)), nb.math("MULTIPLY", cm, 0.35))
+    alpha3 = nb.math("ADD", nb.math("MULTIPLY", alpha, nb.math("SUBTRACT", 1.0, cm)), nb.math("MULTIPLY", cm, 0.22))
     # roughness: back wet/glossy, belly matter, fins matte, iris/pupil/cornea
     fm = nb.smooth(0.5, 0.6, nb.math("MULTIPLY", region, nb.smooth(1.6, 1.5, region)))   # fins only
     em = nb.smooth(1.5, 1.6, region)                                                   # any eye part
@@ -347,7 +353,8 @@ def build_fish_material3(name, P):
     rough = nb.math("ADD", nb.math("MULTIPLY", rough, nb.math("SUBTRACT", 1.0, em)), nb.math("MULTIPLY", em, ROUGH["iris"]))
     rough = nb.math("ADD", nb.math("MULTIPLY", rough, nb.math("SUBTRACT", 1.0, cm)), nb.math("MULTIPLY", cm, ROUGH["cornea"]))
     rough = nb.math("ADD", nb.math("MULTIPLY", rough, nb.math("SUBTRACT", 1.0, pm)), nb.math("MULTIPLY", pm, ROUGH["pupil"]))
-    return mat, img_node, alpha3, col3, bsdf, out, rough
+    bodym = nb.smooth(0.5, 0.4, region)                                             # 1 on the body
+    return mat, img_node, alpha3, col3, bsdf, out, rough, bodym
 
 
 def bake_emit_image(obj, mat, img_node, sock, bsdf, out_node, name, size=ATLAS, sources=None, extrusion=0.0,
@@ -431,7 +438,7 @@ def hires_scaled_body(name, P, cell, height):
         circ.append(float(np.sum(np.hypot(np.diff(y), np.diff(z)))))
     circ_ref = max(circ)
     N_rows = max(16, int(round(circ_ref / cell)))
-    spacing = min(max(cell / 5.0, 0.0003), 0.0012)
+    spacing = min(max(cell / 6.0, 0.0003), 0.0010)
     n_t = int(min(700, max(120, Lb / spacing)))
     n_phi = int(min(520, max(96, circ_ref / spacing)))
     ts = np.linspace(0.003, 1.0, n_t)
@@ -494,15 +501,15 @@ def hires_scaled_body(name, P, cell, height):
             best_du = np.where(take, du, best_du)
             best_dv = np.where(take, dv, best_dv)
     rise = np.clip(0.5 + best_du / (2.0 * R), 0.0, 1.0)
-    h = (0.25 + 0.75 * rise) * (1.0 - 0.30 * (best_dv / R) ** 2)
+    h = (0.30 + 0.70 * rise) * (1.0 - 0.55 * (best_dv / R) ** 2)
     h = np.where(np.isfinite(best_u), h, 0.0)
     # no scales on the head, fade in behind the gill plate, fade out at the tail root
     tt = ts[:, None]
     mask = np.vectorize(lambda t: smoothstep(gill_t + 0.005, gill_t + 0.06, t) * smoothstep(1.0, 0.94, t))(ts)[:, None]
     h = h * mask
     # lateral line: a faint groove at mid-height on both flanks
-    ll = np.exp(-(((phis - math.pi * 0.5 + math.pi) % math.pi - math.pi * 0.5) / 0.07) ** 2)[None, :]
-    h = h - 0.35 * ll * mask * (0.5 + 0.5 * np.ones_like(tt))
+    ll = np.exp(-(((phis - math.pi * 0.5 + math.pi) % math.pi - math.pi * 0.5) / 0.09) ** 2)[None, :]
+    h = h - 0.5 * ll * mask
     hm = height
     disp = pos + nrm * (h * hm)[..., None]
     # mesh
@@ -562,7 +569,7 @@ def flat_emission_material(name, value):
     return m
 
 
-def bake_normal_and_height(obj, mat, img_node, name, P, sources, out_dir):
+def bake_normal_and_height(obj, mat, img_node, name, P, sources, out_dir, body_mask):
     """Selected-to-active NORMAL bake (tangent space, +Y up) from the hi-res sources, then an EMIT
     bake of their height attribute. Saves <name>_normal.png and returns (normal_path, height array)."""
     scene = bpy.context.scene
@@ -592,32 +599,49 @@ def bake_normal_and_height(obj, mat, img_node, name, P, sources, out_dir):
     px = np.empty(ATLAS * ATLAS * 4, dtype=np.float32)
     img.pixels.foreach_get(px)
     px = px.reshape(ATLAS, ATLAS, 4)
-    # texels no ray reached: flat normal
-    miss = px[..., 3] < 0.5
-    px[miss, 0:3] = (0.5, 0.5, 1.0)
+    # fins and eyes carry their relief as geometry: flat normal there; amplify the body's XY tilt
+    n = px[..., :3] * 2.0 - 1.0
+    n[..., 0:2] *= NORMAL_AMP
+    n /= np.maximum(np.linalg.norm(n, axis=2, keepdims=True), 1e-6)
+    n = n * 0.5 + 0.5
+    n[~body_mask] = (0.5, 0.5, 1.0)
     normal_path = os.path.join(out_dir, f"fish_{name}_normal.png")
-    save_png(normal_path, px[..., :3], None, ATLAS, noncolor=True)
+    save_png(normal_path, n, None, ATLAS, noncolor=True)
     bpy.data.images.remove(img)
-    log(f"{name}: normal map -> {normal_path} ({int(miss.sum())} texels unreached)")
+    log(f"{name}: normal map -> {normal_path} ({int((~body_mask).sum())} non-body texels set flat)")
     hpx = bake_emit_image(obj, mat, img_node, None, None, None, f"fish_{name}_height", sources=sources,
                           extrusion=extrusion, ray_dist=ray)
+    hpx[~body_mask] = 0.0
     bk.use_selected_to_active = False
     return normal_path, hpx
 
 
-def compose_roughness(name, base, height, out_dir):
+def compose_roughness(name, base, height, body_mask, out_dir):
     """Roughness = baked base (by region and height on the body) + matte scale rims from the height
     map's gradient. Saves <name>_roughness.png (grey RGB)."""
     hgt = height[..., 0]
-    valid = height[..., 3] > 0.5
-    gy, gx = np.gradient(np.where(valid, hgt, 0.0))
-    edge = np.clip(np.hypot(gx, gy) * 6.0, 0.0, 1.0)
+    gy, gx = np.gradient(np.where(body_mask, hgt, 0.0))
+    edge = np.clip(np.hypot(gx, gy) * 6.0, 0.0, 1.0) * body_mask
     rough = base[..., 0] + ROUGH["scale_edge"] * edge
-    rough = np.where(base[..., 3] > 0.5, rough, 0.5)
     rough = np.clip(rough, 0.03, 0.95)
     path = os.path.join(out_dir, f"fish_{name}_roughness.png")
     save_png(path, np.stack([rough, rough, rough], axis=2), None, ATLAS, noncolor=True)
     return path
+
+
+def paint_scales_into_diffuse(path, height, body_mask):
+    """Darken the scale rims and lift the scale centres in the baked diffuse from the same height
+    map the normal map came from (body texels only), so both maps show one lattice."""
+    from PIL import Image
+    im = Image.open(path).convert("RGBA")
+    a = np.array(im).astype(np.float32)
+    hgt = np.flipud(height[..., 0])            # Blender images are bottom-up, PNG rows top-down
+    valid = np.flipud(body_mask)
+    gy, gx = np.gradient(np.where(valid, hgt, 0.0))
+    edge = np.clip(np.hypot(gx, gy) * 5.0, 0.0, 1.0)
+    mod = np.where(valid, (1.0 - DIFFUSE_RIM * edge) * (0.95 + 0.10 * hgt), 1.0)
+    a[..., :3] *= mod[..., None]
+    Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA").save(path)
 
 
 def make_textured_material3(name, diffuse, normal, roughness, alpha=True, nstrength=1.0):
@@ -712,7 +736,6 @@ def build_fish3(name, P, textures_dir):
     fins = bpy.data.objects.new(f"fish_{name}_fins", me2)
     scene.collection.objects.link(fins)
     fin_tris = v2.tri_count(me2)
-    fins_copy_mesh = me2.copy()          # exact copy for the bake source (flat normals on fins/eyes)
 
     subdiv_used = False
     if P.get("subdiv") and base_tris * 4 + fin_tris <= BUDGET3["fish_max"]:
@@ -740,22 +763,20 @@ def build_fish3(name, P, textures_dir):
     tris = v2.tri_count(obj.data)
 
     # procedural material: diffuse + alpha bake (v2), roughness base bake (v3)
-    mat, img_node, alpha_sock, col_sock, bsdf, out_node, rough_sock = build_fish_material3(name, P)
+    mat, img_node, alpha_sock, col_sock, bsdf, out_node, rough_sock, body_sock = build_fish_material3(name, P)
     obj.data.materials.append(mat)
     diffuse = os.path.join(textures_dir, f"fish_{name}_diffuse.png")
     v2.bake_material(obj, mat, img_node, alpha_sock, col_sock, bsdf, out_node, diffuse)
     rough_base = bake_emit_image(obj, mat, img_node, rough_sock, bsdf, out_node, f"fish_{name}_roughbase")
+    body_mask = bake_emit_image(obj, mat, img_node, body_sock, bsdf, out_node, f"fish_{name}_bodymask")[..., 0] > 0.5
 
     # hi-res scale source + copy of the fins/eyes, normal + height bakes
     sc = SCALES[name]
     hires, hmax = hires_scaled_body(name, P, sc["cell"], sc["height"])
-    fcopy = bpy.data.objects.new(f"fincopy_{name}", fins_copy_mesh)
-    scene.collection.objects.link(fcopy)
-    fins_copy_mesh.materials.append(flat_emission_material(f"FlatH_{name}", 0.5))
-    normal_png, height = bake_normal_and_height(obj, mat, img_node, name, P, [hires, fcopy], textures_dir)
-    rough_png = compose_roughness(name, rough_base, height, textures_dir)
+    normal_png, height = bake_normal_and_height(obj, mat, img_node, name, P, [hires], textures_dir, body_mask)
+    rough_png = compose_roughness(name, rough_base, height, body_mask, textures_dir)
+    paint_scales_into_diffuse(diffuse, height, body_mask)
     bpy.data.objects.remove(hires, do_unlink=True)
-    bpy.data.objects.remove(fcopy, do_unlink=True)
 
     tex_mat = make_textured_material3(f"FishSkin_{name}", diffuse, normal_png, rough_png)
     obj.data.materials.clear()
@@ -912,6 +933,55 @@ def make_actions(armob):
     return swim, bend
 
 
+def add_armature3(obj, P):
+    """v2's 7 bones (root at the mouth, +X forward), but with explicit weights: a smooth hat per bone
+    along x (bone heat fails on the thin fin ridges and eye shells, and a spine rig wants exactly
+    this 1-D weighting anyway). Weights are normalised per vertex."""
+    L = P["length_m"]
+    Lb = v2.body_len(P)
+    scene = bpy.context.scene
+    arm = bpy.data.armatures.new(f"{obj.name}_rig")
+    armob = bpy.data.objects.new(f"{obj.name}_rig", arm)
+    scene.collection.objects.link(armob)
+    bpy.context.view_layer.objects.active = armob
+    bpy.ops.object.mode_set(mode="EDIT")
+    hl = P["head_len"]
+    cuts = [0.0, hl, hl + (0.78 - hl) * 0.25, hl + (0.78 - hl) * 0.5, hl + (0.78 - hl) * 0.75, 0.78, 1.0, L / Lb]
+    prev = None
+    for i, bname in enumerate(v2.BONE_NAMES):
+        t0, t1 = cuts[i], cuts[i + 1]
+        z0 = 0.5 * sum(v2.section(P, min(1.0, t0))[:2])
+        z1 = 0.5 * sum(v2.section(P, min(1.0, t1))[:2])
+        b = arm.edit_bones.new(bname)
+        b.head = (-t0 * Lb, 0.0, z0)
+        b.tail = (-t1 * Lb, 0.0, z1)
+        if prev is not None:
+            b.parent = prev
+            b.use_connect = True
+        prev = b
+    bpy.ops.object.mode_set(mode="OBJECT")
+    for o in scene.objects:
+        o.select_set(False)
+    obj.select_set(True)
+    armob.select_set(True)
+    bpy.context.view_layer.objects.active = armob
+    bpy.ops.object.parent_set(type="ARMATURE_NAME")
+    groups = {vg.name: vg for vg in obj.vertex_groups}
+    for v in obj.data.vertices:
+        t = -v.co.x / Lb
+        ws = []
+        for i, bname in enumerate(v2.BONE_NAMES):
+            t0, t1 = cuts[i], cuts[i + 1]
+            mid, half = 0.5 * (t0 + t1), 0.5 * (t1 - t0)
+            w = max(0.0, 1.0 - abs(t - mid) / (2.0 * half))
+            ws.append(w * w * (3.0 - 2.0 * w))
+        tot = sum(ws) or 1.0
+        for bname, w in zip(v2.BONE_NAMES, ws):
+            if w > 1e-4:
+                groups[bname].add([v.index], w / tot, "REPLACE")
+    return armob
+
+
 def export_fbx3(scene, objs, path_abs, anim=False):
     for o in scene.objects:
         o.select_set(False)
@@ -1047,7 +1117,7 @@ def generate_fish3(name, P, exports, previews, sprites_dir, views, do_fbx, do_re
         fbx = os.path.join(exports, f"fish_{name}.fbx")
         export_fbx3(scene, [obj], fbx)
         if name == "trout" and do_anim:
-            armob = v2.add_armature(obj, P)
+            armob = add_armature3(obj, P)
             bones = v2.BONE_NAMES[:]
             swim, bend = make_actions(armob)
             animated = os.path.join(exports, "fish_trout_animated.fbx")
@@ -1075,7 +1145,7 @@ def render_closeup(scene, obj, P, path, samples):
     v2.studio(scene, [obj], Vector((0.30, -1.0, 0.30)), samples, ground=False, frame=frame, lens=85.0)
     # raking light from behind-above the flank
     ld = bpy.data.lights.new("Rake", "AREA")
-    ld.energy = 25.0 * L * L * 40.0
+    ld.energy = 60.0 * L * L
     ld.size = 0.4 * L
     ld.color = (1.0, 0.95, 0.85)
     lo_ = bpy.data.objects.new("Rake", ld)
@@ -1198,10 +1268,11 @@ class PB3(v2.PropBuilder):
         c = p1 - wd * (0.5 * width * taper)
         d = p1 + wd * (0.5 * width * taper)
         vs = [self.bm.verts.new(p) for p in (a, b, c, d)]
-        for v in vs:
+        vs2 = [self.bm.verts.new(p) for p in (a, b, c, d)]          # own verts for the back face
+        for v in vs + vs2:
             v[self.lay] = PR[region]
         f1 = self.bm.faces.new(vs)
-        f2 = self.bm.faces.new(list(reversed(vs)))
+        f2 = self.bm.faces.new(list(reversed(vs2)))
         f1.smooth = f2.smooth = False
         return [f1, f2]
 
@@ -1275,7 +1346,7 @@ def add_reel(b, xr=0.38):
     b.cyl((xr + 0.068, 0.0, zc), (xr + 0.0735, 0.0, zc), 0.0185, None, "metal", segs=16)  # front lip
     x = xr + 0.0365
     while x < xr + 0.0665:
-        b.torus((x, 0.0, zc), (1.0, 0.0, 0.0), 0.0160, 0.0016, "line", segs=16, rings=5)
+        b.torus((x, 0.0, zc), (1.0, 0.0, 0.0), 0.0160, 0.0016, "line", segs=14, rings=4)
         x += 0.0032
     b.cyl((xr + 0.0735, 0.0, zc), (xr + 0.079, 0.0, zc), 0.009, 0.006, "dark", segs=12)   # drag knob
     b.cyl((xr + 0.079, 0.0, zc), (xr + 0.082, 0.0, zc), 0.004, None, "metal", segs=8)
@@ -1395,11 +1466,11 @@ def build_fly(name):
 # ----------------------------------------------------------------------------------------------
 def build_boat(name):
     b = PB3()
-    X0, X1 = -1.55, 1.75
+    X0, X1 = -1.60, 1.88
     n_st, n_str = 22, 6
 
     def u(x):
-        return (x - 0.1) / 1.70
+        return (x - 0.14) / 1.76
 
     def beam(x):
         return 0.72 * max(0.0, 1.0 - u(x) ** 2) ** 0.35
@@ -1689,6 +1760,10 @@ def generate_prop3(name, P, exports, previews, do_fbx, do_render, samples):
             ground = P["kind"] in ("boat", "tacklebox", "rod3")
             if vk == "reel":
                 frame = ((0.26, -0.10, -0.15), (0.50, 0.10, 0.02))
+            elif P["kind"] in ("spinner", "spoon", "fly"):          # tall or tiny: pad the frame
+                lo, hi = v2.bounds([obj])
+                pad = 0.30 * (hi - lo).length
+                frame = (tuple(lo - Vector((pad, pad, pad))), tuple(hi + Vector((pad, pad, pad))))
             v2.studio(scene, [obj], vd, samples, ground=ground, lens=50.0, frame=frame)
             png_ = os.path.join(previews, f"{name}_{vk}.png")
             t1 = time.time()

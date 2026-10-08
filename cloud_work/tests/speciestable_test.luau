@@ -5,6 +5,9 @@
 -- boundaries, brainConfig merges without touching the base and rejects unknown keys, spawnWeight
 -- periods and the 30-minute boundary blends, depth gating, and lure multipliers.
 -- Run from this folder: luau speciestable_test.luau
+-- mutate-max-survival: 0.25 (why: of tools/mutate.py's 12 quick mutants three survive by design: rollLength's
+-- `z >= 0` picks the same sigma at exactly z == 0, periodAt(8) is never reached because 08:00 lies inside the
+-- 30-minute blend, and pike's jig multiplier is an UNTUNED placeholder that no behavioural check should pin)
 
 local Stub = require("./RobloxStub")
 local T = Stub.harness("speciestable_test")
@@ -182,5 +185,14 @@ T.eq(SpeciesTable.lureMultiplier("pike", "worm"), 0.6, "pike default is 0.6")
 
 -- N2: a NaN or infinite time or depth is a weight of 0, never a weight that slipped past the gates
 T.check(SpeciesTable.spawnWeight("trout", 0 / 0, 1.0) == 0 and SpeciesTable.spawnWeight("trout", 12, 0 / 0) == 0 and SpeciesTable.spawnWeight("trout", math.huge, 1.0) == 0 and SpeciesTable.spawnWeight("trout", 12, math.huge) == 0, "N2: spawnWeight with a NaN or infinite time or depth is 0 (was: 1 for a NaN time, the depth gate skipped for a NaN depth)")
+
+-- M1-M3 (mutation checker, tools/mutate.py): validate's lengthM and pricePerKg checks, periodAt's dawn branch
+local rowsCopy = deepCopy(SpeciesTable.ROWS)
+rowsCopy.trout.lengthM.median = "x"
+T.throws(function() SpeciesTable.validate(rowsCopy) end, "lengthM", "M1: a non-number median fails on lengthM, not on a comparison error")
+rowsCopy = deepCopy(SpeciesTable.ROWS)
+rowsCopy.trout.pricePerKg = 0
+T.throws(function() SpeciesTable.validate(rowsCopy) end, "pricePerKg", "M2: pricePerKg 0 fails")
+T.eq(SpeciesTable.spawnWeight("perch", 6, 1.0), 0.8, "M3: 06:00 is dawn for perch too (0.8, not its dusk 0.9)")
 
 T.finish()

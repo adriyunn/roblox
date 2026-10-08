@@ -64,6 +64,8 @@ T.eq(GameData.priceFor("minnow", 0.06, SpeciesTable.weightFor("minnow", 0.06)), 
 T.throws(function() GameData.priceFor("salmon", 0.4, 1) end, "unknown species", "priceFor refuses an unknown species")
 T.throws(function() GameData.priceFor("trout", 0.4, -1) end, "must be numbers >= 0", "priceFor refuses a negative weight")
 T.throws(function() GameData.priceFor("trout", 0.4, 1e308) end, "overflows", "N3: a 1e308 kg weight errors at the call site (was: inf coins returned; an infinite weight was already refused)")
+T.throws(function() GameData.priceFor("trout", 0 / 0, 1) end, "must be numbers >= 0", "M1 (mutation checker): a NaN length is refused even with a good weight")
+T.eq(GameData.priceFor("trout", 0.40, 0.755), 8, "M2: 8.305 coins round down (floor(x + 0.5))")
 
 -- sellTotal: the calibration
 local four = {}
@@ -116,6 +118,9 @@ T.throws(function() GameData.validate(bad) end, "STARTER.rod", "a starter id tha
 bad = dataCopy()
 bad.GEAR.hooks.hook_wide.hookSetWindowMul = 0
 T.throws(function() GameData.validate(bad) end, "hook_wide.hookSetWindowMul", "a zero multiplier fails")
+bad = dataCopy()
+bad.GEAR.rods.rod_pro.name = ""
+T.throws(function() GameData.validate(bad) end, "rod_pro.name", "M3: an empty gear name fails")
 T.check(GameData.validate(), "the live data is untouched by the mutated copies")
 
 T.finish()

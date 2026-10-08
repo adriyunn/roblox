@@ -467,4 +467,25 @@ do -- N8: get("") is a programmer error, not the whole data table
 	end, "empty path", "N8: profile:get(\"\") errors like set(\"\") does (was: returned the whole data table)")
 end
 
+-- ---------------------------------------------------------------- mutation checker (tools/mutate.py) kills
+do -- M1, M2: a one-segment get() and the deps check
+	local RR, sd = fresh()
+	local prof = sd:load(RR.Players:addFake(34)) :: any
+	T.eq(prof:get("coins"), 0, "M1: get() reads a one-segment path")
+	T.throws(function()
+		SaveData.new({ DataStoreService = RR.DataStoreService, clock = function() return 0 end, warn = RR.warn } :: any, {})
+	end, "deps", "M2: new() without deps.task errors (DataStoreService alone is not enough)")
+end
+do -- M3: the default lockStaleS is 1800 s: a lock exactly that old is stale, one second younger is live
+	local RR = Stub.new()
+	local deps = { DataStoreService = RR.DataStoreService, Players = RR.Players, HttpService = RR.HttpService, task = RR.task, Enum = RR.Enum, clock = function() return RR.clock.now end, warn = RR.warn, jobId = "job-A" }
+	local sd = SaveData.new(deps :: any, { storeName = STORE } :: any)
+	RR.advance(5000)
+	RR.dataStores.stores[STORE]["u35"] = { _v = 1, coins = 1, _lock = { jobId = "other", t = 5000 - 1800 } }
+	RR.dataStores.stores[STORE]["u36"] = { _v = 1, coins = 1, _lock = { jobId = "other", t = 5000 - 1799 } }
+	local stale = sd:load(RR.Players:addFake(35))
+	local _, why = sd:load(RR.Players:addFake(36))
+	T.check(stale ~= nil and why == "locked", "M3: with the default lockStaleS a lock 1800 s old is taken over and one 1799 s old refuses the load")
+end
+
 T.finish()

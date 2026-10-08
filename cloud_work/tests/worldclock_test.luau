@@ -139,4 +139,17 @@ WorldClock.advance(n7, 10)
 local settled = WorldClock.waveAmplitudeM(n7)
 T.check(math.abs(inRain - 0.1) < 1e-9 and atChange == inRain and midWay > 0.05 and midWay < inRain and math.abs(settled - 0.05) < 1e-9, string.format("N7a: rain -> overcast ramps the wave 0.1 -> %.3f -> 0.05 instead of jumping (was: 0.084 -> 0.05 at the change, and never 0.1 in rain)", midWay))
 
+-- M1-M5 (mutation checker, tools/mutate.py): setTime bounds, the version message, a minimal save, a full round trip
+-- Known equivalent mutant: the wave ramp's `waveNow < target` -> `<=` lands on the target either way.
+T.throws(function() WorldClock.setTime(b, 24) end, "hour must be", "M1: setTime refuses 24")
+T.throws(function() WorldClock.deserialize({ v = 2 }) end, "unsupported version 2", "M2: the version error names the version found")
+local minimal = WorldClock.deserialize({ v = 1, timeH = 7, dayN = 1, weather = "clear" })
+T.check(minimal.dayLengthS == WorldClock.DEFAULTS.DayLengthS and minimal.weatherLeftS == WorldClock.DEFAULTS.WeatherMinS and minimal.rain == 0 and minimal.rainNow == 0 and minimal.waveNow == WorldClock.WAVE_M.clear, "M3: a save without the optional fields loads with the defaults")
+local full = WorldClock.new({ DayLengthS = 240, WeatherMinS = 50, WeatherMaxS = 50, RainRampS = 10 })
+WorldClock.setWeather(full, "rain", 77)
+WorldClock.advance(full, 3)
+local fullBack = WorldClock.deserialize(R.HttpService:JSONDecode(R.HttpService:JSONEncode(WorldClock.serialize(full))))
+T.check(fullBack.dayLengthS == 240 and fullBack.weatherLeftS == 74 and math.abs(fullBack.rainNow - full.rainNow) < 1e-9 and math.abs(fullBack.waveNow - full.waveNow) < 1e-9 and fullBack.rain == 0.8, "M4: a full save round-trips dayLengthS 240, weatherLeftS 74, rain, rainNow and waveNow")
+T.throws(function() WorldClock.deserialize({ v = 1, timeH = 7, dayN = 1, weather = "clear", waveNow = 1.5 }) end, "bad waveNow", "M5: deserialize refuses waveNow above 1")
+
 T.finish()

@@ -233,6 +233,18 @@ EncounterLog.start(n5log, "n5", { anglerId = 1, fishId = "f", speciesId = "trout
 EncounterLog.event(n5log, "n5", "Hooked", 310)
 T.eq(EncounterLog.finish(n5log, "n5", 330, "Caught").fightS, 20, "N5: finish(330, Caught) with no Caught event gives fightS = tEnd - Hooked = 20 (was nil)")
 
+-- M1-M3 (mutation checker, tools/mutate.py): event() checks both arguments, a zero-width band is a band, an odd-n median
+-- Known equivalent mutant: csvCell's COUNTS branch replaced by its tostring fallthrough prints the same for integer counts.
+EncounterLog.start(n5log, "m1", { anglerId = 1, fishId = "f", speciesId = "trout", hookMode = "bed", t = 0 })
+T.throws(function()
+	EncounterLog.event(n5log, "m1", "Nip", "soon" :: any)
+end, "t a number", "M1: event() with a non-number time errors even when the name is a string")
+local zeroWidth = EncounterLog.bands(twenty, { bed = { hoverS = { 10.5, 10.5 } } })
+T.check(#zeroWidth == 1 and zeroWidth[1].ok == true, "M2: a band with lo == hi is a valid band (median 10.5 inside 10.5..10.5)")
+T.eq(EncounterLog.summary(synth(3, "bed", function(i)
+	return i
+end), "hoverS").median, 2, "M3: the median of three values is the middle one")
+
 print("-----BEGIN FIXTURE encounters_sample.csv-----")
 print(sampleCsv:sub(1, -2))
 print("-----END FIXTURE-----")

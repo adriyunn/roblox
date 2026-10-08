@@ -8,10 +8,10 @@
 -- via string.pack("<f"), free-form tables as the tagged form of the design note's section 4. It exists so
 -- Dev3's vectors (tools/net_vectors_v3.py -> tests/fixtures/net_vectors_v3.json) have one unambiguous
 -- byte form to compare against; Dev3 maps every field to the real codec from the same table.
--- WRITTEN WITHOUT THE PROJECT FILES. Dev3 owns the wire (FishingNet, RequestGuard, the StateRules rows),
--- Dev1 the server handlers. The state names are the F1 list from CONTEXT.md and must match StateRules'
--- row names byte for byte. The u8 enums (kind, option keys, reason codes) are listed in the design note,
--- section 6; here they are ranges. No Roblox globals.
+-- WRITTEN WITHOUT THE PROJECT FILES. Integration points a dev must wire: Dev3 owns the wire (FishingNet,
+-- RequestGuard, the StateRules rows), Dev1 the server handlers. The state names are the F1 list from
+-- CONTEXT.md and must match StateRules' row names byte for byte. The u8 enums (kind, option keys, reason
+-- codes) are listed in the design note, section 6; here they are ranges. No Roblox globals.
 
 local NetSchemaV3 = {}
 

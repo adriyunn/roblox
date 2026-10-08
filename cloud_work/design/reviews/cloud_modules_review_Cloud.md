@@ -154,8 +154,15 @@ which a caller taking one value never sees.
 | N9 | yes | parity_report.py: a "nan" / "inf" cell is an InputError (exit 2); a boolean or non-finite band edge is refused | N9 (parity_report_test) |
 | N10 | part | RobloxStub: a null array element is a nil hole at its index like Roblox's JSONDecode (documented at the decoder: # of such a table is a border); "1-2" is a JSON error (mantissa and exponent matched apart); Signal.Once disconnects after one Fire; luau-analyze clean under both solvers (the three Instance.new warnings were a type cycle through the __index closure's rawget, cured with a cast; the other new-solver errors were missing return and self annotations). Not changed: task.spawn stays synchronous, which the suites rely on | N10a, N10b, N10c (robloxstub_test) |
 
-Run on 2026-10-08: run_all PASS (18 suites: evidenceboard_test, schedule_test and ccr_digest_test are other agents' new suites);
-savedata_test 107, tacklebox_test 72, speciestable_test 54, gamedata_test 46, encounterlog_test 69, encounterreplay_test 68,
-worldclock_test 42, robloxstub_test 36, parity_report_test 34. Every R9 and N check was also run against the HEAD (df2ab2b)
-modules, stub and parity report: all 15 fail there (R9a reports 276.00 s). luau-analyze (default solver) is clean on every
-module under src/ and on the stub; the stub is also clean under --solver=old.
+Run on 2026-10-08: run_all PASS (27 suites, of which eight are other agents' new modules and their suites plus ccr_digest_test);
+savedata_test 110, tacklebox_test 73, speciestable_test 57, gamedata_test 49, encounterlog_test 72, encounterreplay_test 71,
+worldclock_test 47, robloxstub_test 36, catchlog_test 53, catchcard_test 52, parity_report_test 34. Every R9 and N check was also
+run against the df2ab2b modules, stub and parity report: all 15 fail there (R9a reports 276.00 s). luau-analyze (default solver)
+is clean on every module under src/ and on the stub; the stub is also clean under --solver=old.
+
+The gate gained two sections in the same pass: `conventions` (tools/check_conventions.py: the header, the no-engine-globals
+rule and the suite shape of every module under src/; WorldClock's and NetSchemaV3's headers were brought to the team wording)
+and `mutation (quick)` (tools/mutate.py: 12 mutants per module, one change each, the suite must kill at least 85%). The
+checks labelled M1.. in the suites above are the ones that pass that bar; the three documented survivors that stay are
+equivalent mutants (CatchLog firstLess's last `<`, EncounterLog csvCell's COUNTS fallthrough, WorldClock's wave ramp `<`)
+and SpeciesTable declares a 25% threshold for its UNTUNED rows. CI's luau-analyze step is now a hard gate.

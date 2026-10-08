@@ -5,7 +5,7 @@
 -- weather state machine (clear / overcast / rain) driven by an injected rng, and the numbers the client
 -- needs (Lighting.ClockTime, rain intensity, wave amplitude capped so pool fish stay visible).
 --
--- Written without the project files. Integration points a dev must wire:
+-- WRITTEN WITHOUT THE PROJECT FILES. Integration points a dev must wire:
 --   * FishingServer: one WorldClock per server; call WorldClock.advance(clock, dt) from Heartbeat and
 --     publish WorldClock.snapshot(clock) as attributes on a ReplicatedStorage folder (ClockTime, DayN,
 --     Weather, Rain, WaveM) so every client reads one source of truth.

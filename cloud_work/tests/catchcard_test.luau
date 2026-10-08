@@ -91,4 +91,9 @@ T.throws(function() CatchCard.build(first, r1, { units = "furlongs" :: any }) en
 T.throws(function() CatchCard.build({ speciesId = "trout", lengthM = 0, weightKg = 1, zoneId = "deep", lureId = "worm" }, r1, nil) end, "lengthM", "a zero length errors")
 T.throws(function() CatchCard.formatWeight(-1, "metric") end, "weightKg", "a negative weight errors")
 
+-- M1-M3 (mutation checker, tools/mutate.py): each argument check stands on its own
+T.throws(function() CatchCard.formatLength(-1, "metric") end, "lengthM", "M1: a negative length errors")
+T.throws(function() CatchCard.formatCoins(-1) end, "coins", "M2: negative coins error")
+T.throws(function() CatchCard.build({ speciesId = "trout", lengthM = 0.4, weightKg = 0, zoneId = "deep", lureId = "worm" }, r1, nil) end, "weightKg", "M3: a zero weight errors")
+
 T.finish()

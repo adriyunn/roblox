@@ -1,6 +1,7 @@
 # luau-ci.yml (About Fishing F1 cloud work; Cloud, 2026-10-06)
 # The offline gate as CI: on every push and pull request, install the Luau CLI, syntax-check every
-# module at -O0/-O1/-O2, run every *_test.luau and *_test.py, and fail on CRLF line endings.
+# module at -O0/-O1/-O2, run every *_test.luau and *_test.py, the conventions and quick mutation checks,
+# fail on CRLF line endings, then type-check every module and the stub with luau-analyze (a hard gate).
 # When the GameOne tree moves into git (process/GIT_MIGRATION.md), point ROOT at Phase5_AF and add
 # its suites to the same job: tests/wsa/*.luau run the same way (from their own folder).
 name: luau-ci
@@ -30,7 +31,15 @@ jobs:
           python-version: "3.12"
       - name: Offline gate (compile, suites, python tests, line endings)
         run: bash cloud_work/tests/run_all.sh
-      - name: Type check (advisory; does not fail the build yet)
-        continue-on-error: true
+      - name: Type check (luau-analyze on every module and the stub; any reported error fails the build)
         run: |
-          find cloud_work/src -name '*.lua' -o -name '*.luau' | sort | xargs -r luau-analyze 2>&1 | tail -n 50
+          fail=0
+          while IFS= read -r f; do
+            if out="$(luau-analyze "$f" 2>&1)" && [ -z "$out" ]; then
+              echo "  ok   $f"
+            else
+              echo "  FAIL $f"; printf '%s\n' "$out" | sed 's/^/      /'; fail=$((fail+1))
+            fi
+          done < <({ find cloud_work/src -type f \( -name '*.lua' -o -name '*.luau' \); echo cloud_work/tests/RobloxStub.luau; } | sort)
+          if [ "$fail" -ne 0 ]; then echo "luau-analyze: FAIL $fail file(s)"; exit 1; fi
+          echo "luau-analyze: PASS"

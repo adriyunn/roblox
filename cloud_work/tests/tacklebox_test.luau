@@ -269,4 +269,10 @@ do -- N1: items() hands out copies, so a caller mutating a shape cannot break th
 	T.check(okCheck and TackleBox.at(n1, 2, 1) ~= nil and TackleBox.at(n1, 4, 1) == nil, "N1: mutating items(box)[1].item.shape and .x leaves the box intact and check() true (was: the live shape was shared, check() errored)")
 end
 
+do -- M1 (mutation checker, tools/mutate.py): at() checks each bound on its own (cell keys wrap: (w+1, 1) has the key of (1, 2))
+	local m1 = TackleBox.new(4, 4)
+	TackleBox.place(m1, { kind = "lure", key = "m1", shape = TackleBox.SHAPES.line1 }, 0, 1, 2)
+	T.check(TackleBox.at(m1, 1, 2) ~= nil and TackleBox.at(m1, 5, 1) == nil and TackleBox.at(m1, 2, 0) == nil and TackleBox.at(m1, 0, 2) == nil and TackleBox.at(m1, 1, 5) == nil, "M1: at() is nil just outside each edge, including (5, 1) whose cell key equals (1, 2)'s")
+end
+
 T.finish()

@@ -132,4 +132,25 @@ tampered.species[2].id = "trout"
 T.throws(function() CatchLog.deserialize(tampered) end, "duplicate id", "a duplicate species id is refused")
 T.throws(function() CatchLog.deserialize(42) end, "not a serialized log", "a non-table is refused")
 
+-- M1-M5 (mutation checker, tools/mutate.py): the 0..24 edges, count 0, and the best-length tie-break order
+-- Known equivalent mutant: firstLess's last `a.lengthM < b.lengthM` -> `<=` only differs for two identical firsts.
+T.eq(CatchLog.record(CatchLog.new(), catch("trout", 0.4, 0.5, "shore", 0, 0, "worm")).countNow, 1, "M1: day 0 at 00:00 is a valid catch")
+tampered = Stub.jsonDecode(w)
+tampered.species[1].count = 0
+tampered.species[1].zones = {}
+T.throws(function() CatchLog.deserialize(tampered) end, "integer >= 1", "M2: count 0 with no zones is refused on the count itself")
+tampered = Stub.jsonDecode(w)
+tampered.species[1].first.timeOfDay = 24.5
+T.throws(function() CatchLog.deserialize(tampered) end, "first must have", "M3: a first at 24.5 h is refused")
+local tieA, tieB = CatchLog.new(), CatchLog.new()
+CatchLog.record(tieA, catch("trout", 0.50, 1.0, "reeds", 3, 6, "worm"))
+CatchLog.record(tieB, catch("trout", 0.50, 1.1, "shore", 2, 7, "fly"))
+local tieBest = (CatchLog.get(CatchLog.merge(tieA, tieB), "trout") :: CatchLog.Record).bestLengthCatch
+T.check(tieBest.dayN == 2 and tieBest.zoneId == "shore", "M4: an exact best-length tie goes to the earlier day (day 2 at 07:00 beats day 3 at 06:00)")
+local tieC, tieD = CatchLog.new(), CatchLog.new()
+CatchLog.record(tieC, catch("trout", 0.50, 1.0, "reeds", 2, 7, "worm"))
+CatchLog.record(tieD, catch("trout", 0.50, 1.1, "shore", 2, 7, "fly"))
+local tieBest2 = (CatchLog.get(CatchLog.merge(tieD, tieC), "trout") :: CatchLog.Record).bestLengthCatch
+T.check(tieBest2.zoneId == "reeds" and tieBest2.lureId == "worm", "M5: a tie on day and time goes to the lower zone id (reeds before shore, whatever the lure)")
+
 T.finish()

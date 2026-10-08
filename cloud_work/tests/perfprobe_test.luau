@@ -106,9 +106,15 @@ do
 end
 
 -- ---------------------------------------------------------------- budgets
+-- on a clock already in ms (msPerUnit 1) with binary-fraction values, so the boundary cases are exact
 do
 	local clock, state = fakeClock()
-	local probe = PerfProbe.new(clock, { enabled = true, budgets = { AF_FishStep = 1.0, AF_FishPoolView = 0.5 } })
+	local probe = PerfProbe.new(clock, { enabled = true, msPerUnit = 1, budgets = { AF_FishStep = 1.0, AF_FishPoolView = 0.5 } })
+	local function section(pr: PerfProbe.PerfProbe, st: { now: number, calls: number }, label: string, ms: number)
+		pr:begin(label)
+		st.now += ms
+		pr:finish(label)
+	end
 	for _ = 1, 20 do
 		section(probe, state, "AF_FishStep", 0.5)
 	end

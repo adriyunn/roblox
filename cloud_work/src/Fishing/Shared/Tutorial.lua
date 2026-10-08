@@ -314,12 +314,12 @@ local function show(tut: Tut)
 	callAllow(tut, tut.compiled[tut.index].allow)
 end
 
+-- After the last step (complete() already cleared its prompt): nothing gated any more.
 local function finish(tut: Tut)
 	tut.done = true
 	tut.startedAt = nil
 	tut.leafCounts = {}
 	tut.hintsFired = {}
-	callClear(tut)
 	callAllow(tut, nil)
 end
 

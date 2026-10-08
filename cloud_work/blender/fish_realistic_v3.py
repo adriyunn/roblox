@@ -462,7 +462,6 @@ def hires_scaled_body(name, P, cell, height):
     nrm = nrm / np.maximum(nl, 1e-12)
     # outward check: the normal should point away from the ring centre
     cen = pos.mean(axis=1, keepdims=True)
-    cen[..., 0] = pos[..., 0]
     flip = np.sum(nrm * (pos - cen), axis=2) < 0
     nrm[flip] *= -1.0
     # scale lattice: U (columns along the body, pitch = cell * local radius / reference radius),
@@ -502,11 +501,10 @@ def hires_scaled_body(name, P, cell, height):
     mask = np.vectorize(lambda t: smoothstep(gill_t + 0.005, gill_t + 0.06, t) * smoothstep(1.0, 0.94, t))(ts)[:, None]
     h = h * mask
     # lateral line: a faint groove at mid-height on both flanks
-    ll = np.exp(-((np.abs(VV / N_rows * 2.0 * math.pi - math.pi * 0.5) % math.pi) / 0.08) ** 2)
     ll = np.exp(-(((phis - math.pi * 0.5 + math.pi) % math.pi - math.pi * 0.5) / 0.07) ** 2)[None, :]
     h = h - 0.35 * ll * mask * (0.5 + 0.5 * np.ones_like(tt))
     hm = height
-    disp = pos + nrm * (h * hm)
+    disp = pos + nrm * (h * hm)[..., None]
     # mesh
     verts = disp.reshape(-1, 3)
     idx = np.arange(n_t * n_phi).reshape(n_t, n_phi)

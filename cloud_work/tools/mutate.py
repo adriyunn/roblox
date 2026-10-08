@@ -17,11 +17,15 @@ Mutation operators (one per mutant):
             own `return M` at column 1 is never touched)
   negate    one statement-level `if` / `elseif` condition becomes `not (...)`
 
-Modes: --quick (at most --per-module 12 mutants per module, chosen by hashing each mutant's position, so
-the pick is the same on every machine and every run) or --full (every mutant). --module Name limits the
-run to one module, --list-survivors prints each survivor's one-line diff, --json out.json writes the
-per-module numbers. Exit 0 when every module's survival rate (survived / counted mutants) is at most
---max-survival (default 0.15), else 1; 2 on a usage error. Run: python3 -I tools/mutate.py --quick
+Modes: --quick (at most --per-module 12 mutants per module, spread over the five operators and chosen
+within each by hashing the mutant's position, so the pick is the same on every machine and every run
+until the module's text moves) or --full (every mutant). --module Name limits the run to one module,
+--list-survivors prints each survivor's one-line diff, --json out.json writes the per-module numbers.
+Exit 0 when every module's survival rate (survived / counted mutants) is at most --max-survival
+(default 0.15), else 1; 2 on a usage error. A suite may carry its own threshold in a comment line,
+`-- mutate-max-survival: 0.35 (why: ...)`, for mutants that are equivalent or change placeholder data;
+--advisory Name,Name reports those modules without letting them fail the run (for a module another
+agent is still writing). Run: python3 -I tools/mutate.py --quick
 """
 from __future__ import annotations
 
@@ -53,6 +57,8 @@ OPS2 = ("..", "==", "~=", "<=", ">=", "->", "+=", "-=", "*=", "/=", "%=", "^=", 
 LONG_BRACKET = re.compile(r"\[(=*)\[")
 NUMBER = re.compile(r"0[xX][0-9a-fA-F_]+|0[bB][01_]+|\d[\d_]*(?:\.(?!\.)[\d_]*)?(?:[eE][-+]?\d+)?|\.\d[\d_]*(?:[eE][-+]?\d+)?")
 NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+OVERRIDE = re.compile(r"--\s*mutate-max-survival:\s*([0-9]*\.?[0-9]+)")
+OPERATORS = ("compare", "logic", "number", "return", "negate")
 
 
 # ---------------------------------------------------------------- a small Luau tokenizer
@@ -239,11 +245,25 @@ def find_modules(root: Path, only: str | None) -> list[Module]:
 
 
 def select(mutants: list[Mutant], rel: str, limit: int | None) -> list[Mutant]:
+    """All mutants, or at most `limit` of them: round-robin over the operators (so a data-heavy module is not
+    sampled on its number literals alone), each operator's mutants ordered by the hash of their position."""
     for m in mutants:
         m.key = hashlib.sha1(f"{rel}|{m.line}|{m.col}|{m.op}".encode()).hexdigest()
     if limit is None or len(mutants) <= limit:
         return mutants
-    return sorted(mutants, key=lambda m: m.key)[:limit]
+    queues = {op: sorted((m for m in mutants if m.op == op), key=lambda m: m.key) for op in OPERATORS}
+    picked: list[Mutant] = []
+    while len(picked) < limit and any(queues.values()):
+        for op in OPERATORS:
+            if queues[op] and len(picked) < limit:
+                picked.append(queues[op].pop(0))
+    return sorted(picked, key=lambda m: (m.line, m.col))
+
+
+def suite_threshold(test: Path) -> float | None:
+    """The `-- mutate-max-survival: x` a suite declares for itself, or None."""
+    m = OVERRIDE.search(test.read_text(encoding="utf-8"))
+    return float(m.group(1)) if m else None
 
 
 def run_one(work: Path, module: Module, m: Mutant, timeout: float) -> str:
@@ -297,6 +317,7 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--per-module", type=int, default=12, help="quick mode: mutants per module (default 12)")
     ap.add_argument("--max-survival", type=float, default=0.15, help="largest survived/mutants per module that still passes (default 0.15)")
     ap.add_argument("--list-survivors", action="store_true", help="print every survivor's one-line diff")
+    ap.add_argument("--advisory", default="", help="comma-separated module names that are reported but never fail the run")
     ap.add_argument("--json", type=Path, default=None, help="write the per-module numbers to this file")
     ap.add_argument("--root", type=Path, default=DEFAULT_ROOT, help="the folder holding src/ and tests/ (default: cloud_work)")
     ap.add_argument("--jobs", type=int, default=min(8, os.cpu_count() or 2), help="mutants run in parallel")
@@ -315,16 +336,22 @@ def main(argv: list[str]) -> int:
         return 2
     limit = None if args.full else args.per_module
     mode_name = "full" if args.full else "quick"
+    advisory = {s.strip().lower() for s in args.advisory.split(",") if s.strip()}
     t0 = time.time()
     work = Path(tempfile.mkdtemp(prefix="mutate_"))
     results = []
     try:
         for module in modules:
             r = check_module(work, module, limit, args.timeout, args.jobs)
-            r["ok"] = r["survival"] <= args.max_survival
+            own = suite_threshold(module.test)
+            r["max_survival"] = own if own is not None else args.max_survival
+            r["advisory"] = module.name.lower() in advisory
+            r["ok"] = r["survival"] <= r["max_survival"] or r["advisory"]
             results.append(r)
             note = "" if r["invalid"] == 0 else f", {r['invalid']} invalid skipped"
-            flag = "ok  " if r["ok"] else "FAIL"
+            if own is not None:
+                note += f", suite threshold {own:.0%}"
+            flag = "ok  " if r["survival"] <= r["max_survival"] else ("adv " if r["advisory"] else "FAIL")
             print(f"  {flag} {module.name}: {r['mutants']} mutants, {r['killed']} killed, {r['survived']} survived ({r['survival']:.0%}{note})")
             if args.list_survivors:
                 for s in r["survivors"]:
